@@ -2,21 +2,16 @@
 import express from 'express'
 import WebSocket from 'ws'
 import { createServer } from 'http'
-
 import dotenv from 'dotenv'
+
+import { init as initRoutes } from './routes'
 
 dotenv.config()
 export const app = express()
 const port = process.env.PORT
 const server = createServer(app)
 
-app.get('/', (req, res) => {
-  res.send('Express + TypeScript Server + ws!!!???')
-})
-
-server.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`)
-})
+initRoutes(app)
 
 const wss = new WebSocket.Server({ server })
 
@@ -34,7 +29,7 @@ const interval = setInterval(function ping() {
     TypedWebSocket.isAlive = false
     ws.ping()
   })
-}, 60000)
+}, 3000)
 
 wss.on('connection', (ws) => {
   const TypedWebSocket = ws as TypedWebSocket
@@ -46,14 +41,12 @@ wss.on('connection', (ws) => {
     if (isBinary) {
       return
     }
-
-    console.log(`Received message`, data)
     try {
       const receivedMessage = JSON.parse(data.toString())
-      console.log('estimate', receivedMessage.text)
+      console.log('received client data  ', receivedMessage)
       wss.clients.forEach((client) => {
         //A client WebSocket broadcasting to every other connected WebSocket clients, excluding itself: client !== ws
-        if (client.readyState === WebSocket.OPEN) {
+        if (client !== ws && client.readyState === WebSocket.OPEN) {
           client.send(JSON.stringify(receivedMessage), { binary: false })
         }
       })
@@ -66,4 +59,8 @@ wss.on('connection', (ws) => {
 
 wss.on('close', function close() {
   clearInterval(interval)
+})
+
+server.listen(port, () => {
+  console.log(`[server]: Server is running at http://localhost:${port}`)
 })
