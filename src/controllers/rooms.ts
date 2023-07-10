@@ -1,5 +1,5 @@
 import { RequestHandler } from 'express'
-import { createRoom } from 'app/models/rooms'
+import { createRoom, getRoom } from 'app/models/rooms'
 import { validate, validators } from 'app/validation'
 
 export const create: RequestHandler = async (req, res, next) => {
@@ -23,4 +23,23 @@ export const create: RequestHandler = async (req, res, next) => {
 
   res.status(201).json(room)
 }
-export const getRoom: RequestHandler = (req, res, next) => {}
+
+export const get: RequestHandler = async (req, res, next) => {
+  const validationResult = validate('/rooms/get', req.params, {
+    id: [validators.isUUID],
+  })
+
+  if (!validationResult.isValid) {
+    return res.status(404).json(validationResult.error)
+  }
+
+  const room = await getRoom(req.params.id)
+  if (!room) {
+    return res.status(404).json({
+      type: '/rooms/get/no-found',
+      title: 'could not found the room with specified id',
+    })
+  }
+
+  res.status(200).json(room)
+}
