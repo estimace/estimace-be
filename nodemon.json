@@ -2,5 +2,8 @@
   "execMap": {
     "ts": "ts-node"
   },
-  "ignoreRoot": [".git", "node_modules"]
+  "ignoreRoot": [".git", "node_modules", "tests"],
+  "watch": ["src"],
+  "exec": "node -r tsconfig-paths/register -r ts-node/register ./src/index.ts",
+  "ext": "ts, js"
 }

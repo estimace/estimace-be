@@ -1,6 +1,7 @@
 import { v4 as uuid } from 'uuid'
 import knex from 'knex'
 import { config as knexConfig } from '../../knexfile'
+
 const db = knex(knexConfig.development)
 
 import { Room, Player, Technique, RoomState } from './types'
@@ -12,18 +13,17 @@ type CreateRoomParam = {
 }
 
 export async function createRoom(param: CreateRoomParam): Promise<Room> {
-  const room: Room = {
+  const roomInsertParam: Omit<Room, 'players'> = {
     id: uuid(),
     state: RoomState.planning,
     technique: param.technique,
-    players: [],
     createdAt: Date.now(),
     updatedAt: null,
   }
 
   const player: PlayerRow = {
     id: uuid(),
-    roomId: room.id,
+    roomId: roomInsertParam.id,
     email: param.player.email,
     name: param.player.name,
     estimate: null,
@@ -32,11 +32,13 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
     updatedAt: null,
   }
 
-  await db('rooms').insert(room)
+  await db('rooms').insert(roomInsertParam)
   await db('players').insert(player)
 
-  room.players = [player]
-  return room
+  return {
+    ...roomInsertParam,
+    players: [player],
+  }
 }
 
 export async function getRoom(id: string): Promise<Room | null> {

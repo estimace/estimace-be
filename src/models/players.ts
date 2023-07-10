@@ -2,9 +2,9 @@ import { v4 as uuid } from 'uuid'
 import knex from 'knex'
 import { config as knexConfig } from '../../knexfile'
 
-import { Player } from './types'
+import { Player, Technique } from './types'
 import { PlayerRow } from 'knex/types/tables'
-import { createAuthToken, verifyAuthToken } from '../utils'
+import { createAuthToken, verifyAuthToken, isValidEstimation } from '../utils'
 
 const db = knex(knexConfig.development)
 
@@ -39,6 +39,15 @@ export async function updatePlayerEstimation(
   param: PlayerEstimationParam,
 ): Promise<PlayerRow | null> {
   if (!verifyAuthToken(param.player.id, param.player.secretKey as string))
+    return null
+
+  const room = await db('rooms').where({ id: param.roomId }).first()
+
+  if (
+    !room ||
+    param.player.estimate === null ||
+    !isValidEstimation(room.technique as Technique, param.player.estimate)
+  )
     return null
 
   const playersRow = await db('players')

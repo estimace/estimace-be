@@ -9,7 +9,7 @@ export const config: { [key: string]: Knex.Config } = {
       filename: process.env.SQLITE_FILENAME as string,
     },
     useNullAsDefault: true,
-    debug: true,
+    debug: false,
     asyncStackTraces: true,
     migrations: {
       directory: './migrations',
@@ -52,4 +52,4 @@ export const config: { [key: string]: Knex.Config } = {
   },
 }
 
-module.exports = config
+//module.exports = config
