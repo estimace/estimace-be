@@ -4,7 +4,7 @@ export async function up(knex: Knex): Promise<void> {
   return knex.schema
     .createTable('rooms', (roomTable) => {
       roomTable.uuid('id').unique().notNullable().primary()
-      roomTable.string('state').notNullable()
+      roomTable.integer('state').notNullable()
       roomTable.string('technique').notNullable()
       roomTable.integer('createdAt')
       roomTable.integer('updatedAt')

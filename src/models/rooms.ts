@@ -48,7 +48,10 @@ export async function getRoom(id: string): Promise<Room | null> {
   const playersRows = await db('players').where({ roomId: id })
   const room: Room = {
     ...roomRow,
-    players: playersRows,
+    players: playersRows.map((item) => ({
+      ...item,
+      isOwner: Boolean(item.isOwner),
+    })),
   }
 
   return room
