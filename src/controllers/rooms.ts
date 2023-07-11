@@ -4,9 +4,9 @@ import { validate, validators } from 'app/validation'
 
 export const create: RequestHandler = async (req, res, next) => {
   const validationResult = validate('/rooms/create', req.body, {
-    name: [validators.isNotEmpty],
-    email: [validators.isNotEmpty, validators.isEmail],
-    technique: [validators.isNotEmpty, validators.isTechnique],
+    name: [validators.isNotEmptyString],
+    email: [validators.isNotEmptyString, validators.isEmail],
+    technique: [validators.isNotEmptyString, validators.isTechnique],
   })
 
   if (!validationResult.isValid) {

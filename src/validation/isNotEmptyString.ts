@@ -1,6 +1,6 @@
 import { ValidationRule } from './types'
 
-export const isNotEmpty: ValidationRule = (field) => {
+export const isNotEmptyString: ValidationRule = (field) => {
   const { namespace, name, value } = field
 
   if (value === undefined) {

@@ -1,6 +1,6 @@
 import request from 'supertest'
 import { app } from 'app/app'
-import { uuidRegex } from './utils'
+import { createTestRoom, uuidRegex, mockTime } from './utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
@@ -9,28 +9,23 @@ describe('Rooms', () => {
 
   describe('Create Room', () => {
     it('creates room by getting owner name, owner email, and estimation technique', async () => {
-      const timeSpy = jest.spyOn(Date, 'now').mockReturnValue(1597017600000)
-      const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
-        name: 'John Smith',
-        technique: 'fibonacci',
-      })
-
+      const mockedTime = mockTime()
+      const { body, statusCode } = await createTestRoom()
       expect(body).toStrictEqual(
         expect.objectContaining({
           state: 1,
           technique: 'fibonacci',
           players: expect.arrayContaining([
             expect.objectContaining({
-              email: 'john@smith.com',
-              name: 'John Smith',
+              email: 'darth@vader.com',
+              name: 'Darth Vader',
               estimate: null,
               isOwner: true,
-              createdAt: 1597017600000,
+              createdAt: mockedTime,
               updatedAt: null,
             }),
           ]),
-          createdAt: 1597017600000,
+          createdAt: mockedTime,
           updatedAt: null,
         }),
       )
@@ -43,7 +38,7 @@ describe('Rooms', () => {
     it('returns error if email address is invalid', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
         email: 'johnsmith.com',
-        name: 'John Smith',
+        name: 'Darth Vader',
         technique: 'fibonacci',
       })
 
@@ -56,7 +51,7 @@ describe('Rooms', () => {
     it('returns error if email address is undefined', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
         email: undefined,
-        name: 'John Smith',
+        name: 'Darth Vader',
         technique: 'fibonacci',
       })
 
@@ -69,7 +64,7 @@ describe('Rooms', () => {
     it('returns error if email address is empty', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
         email: '  ',
-        name: 'John Smith',
+        name: 'Darth Vader',
         technique: 'fibonacci',
       })
 
@@ -82,7 +77,7 @@ describe('Rooms', () => {
     it('returns error if email address is non-string', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
         email: 123,
-        name: 'John Smith',
+        name: 'Darth Vader',
         technique: 'fibonacci',
       })
 
@@ -95,7 +90,7 @@ describe('Rooms', () => {
 
     it('returns error if player name is empty', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
+        email: 'darth@vader.com',
         name: '  ',
         technique: 'fibonacci',
       })
@@ -109,7 +104,7 @@ describe('Rooms', () => {
 
     it('returns error if player name is undefined', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
+        email: 'darth@vader.com',
         name: undefined,
         technique: 'fibonacci',
       })
@@ -122,7 +117,7 @@ describe('Rooms', () => {
     })
     it('returns error if player name is invalid', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
+        email: 'darth@vader.com',
         name: 120,
         technique: 'fibonacci',
       })
@@ -136,8 +131,8 @@ describe('Rooms', () => {
 
     it('returns error if estimation technique is undefined', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
-        name: 'John Smith',
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
         technique: undefined,
       })
 
@@ -149,8 +144,8 @@ describe('Rooms', () => {
     })
     it('returns error if estimation technique is empty', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
-        name: 'John Smith',
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
         technique: '  ',
       })
 
@@ -162,8 +157,8 @@ describe('Rooms', () => {
     })
     it('returns error if estimation technique is invalid', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
-        name: 'John Smith',
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
         technique: 'estimation-technique',
       })
 
@@ -177,15 +172,12 @@ describe('Rooms', () => {
 
   describe('Get Room', () => {
     it('gets room by a unique id', async () => {
-      const timeSpy = jest.spyOn(Date, 'now').mockReturnValue(1688998439948)
-      const createdRoomRes = await request(app).post('/rooms').send({
-        email: 'john@smith.com',
-        name: 'John Smith',
-        technique: 'fibonacci',
-      })
+      const mockedTime = mockTime()
+      const createdRoomRes = await createTestRoom()
       const roomId = createdRoomRes.body.id
 
       const { body, statusCode } = await request(app).get(`/rooms/${roomId}`)
+
       expect(body).toStrictEqual({
         id: roomId,
         state: 1,
@@ -193,15 +185,15 @@ describe('Rooms', () => {
         players: expect.arrayContaining([
           expect.objectContaining({
             id: createdRoomRes.body.players[0].id,
-            email: 'john@smith.com',
-            name: 'John Smith',
+            email: 'darth@vader.com',
+            name: 'Darth Vader',
             estimate: null,
             isOwner: true,
-            createdAt: 1688998439948,
+            createdAt: mockedTime,
             updatedAt: null,
           }),
         ]),
-        createdAt: 1688998439948,
+        createdAt: mockedTime,
         updatedAt: null,
       })
       expect(statusCode).toBe(200)
@@ -224,7 +216,6 @@ describe('Rooms', () => {
       const { body, statusCode } = await request(app).get(
         `/rooms/8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44`,
       )
-
       expect(body).toStrictEqual({
         type: '/rooms/get/no-found',
         title: 'could not found the room with specified id',

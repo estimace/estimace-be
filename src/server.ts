@@ -39,7 +39,6 @@ wss.on('connection', (ws) => {
     }
     try {
       const receivedMessage = JSON.parse(data.toString())
-      console.log('received client data  ', receivedMessage)
       switch (receivedMessage.type) {
         case 'room-state':
           //updateRoomState(receivedMessage.payload)
