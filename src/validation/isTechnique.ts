@@ -1,5 +1,5 @@
 import { ValidationRule } from './types'
-import { Technique } from 'app/models/types'
+import { TECHNIQUES } from 'app/models/types'
 
 export const isTechnique: ValidationRule = (field) => {
   const { namespace, name, value } = field
@@ -10,7 +10,7 @@ export const isTechnique: ValidationRule = (field) => {
     )
   }
 
-  if (!(value in Technique)) {
+  if (!(value in TECHNIQUES)) {
     return {
       isValid: false,
       error: {

@@ -6,6 +6,7 @@ import {
   CreatePlayerParam,
   mockTime,
 } from './utils'
+import { createAuthToken } from 'app/utils'
 
 describe('Players', () => {
   beforeEach(() => {
@@ -72,7 +73,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/email/invalid',
+        type: '/rooms/players/create/email/invalid',
         title: '"email" field is not a valid email address',
       })
     })
@@ -83,7 +84,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/email/undefined',
+        type: '/rooms/players/create/email/undefined',
         title: '"email" field is not defined',
       })
     })
@@ -94,7 +95,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/email/empty',
+        type: '/rooms/players/create/email/empty',
         title: '"email" field is empty',
       })
     })
@@ -105,7 +106,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/email/non-string',
+        type: '/rooms/players/create/email/non-string',
         title: 'type of "email" field is not a string',
       })
     })
@@ -120,7 +121,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/name/empty',
+        type: '/rooms/players/create/name/empty',
         title: '"name" field is empty',
       })
     })
@@ -132,7 +133,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/name/undefined',
+        type: '/rooms/players/create/name/undefined',
         title: '"name" field is not defined',
       })
     })
@@ -143,7 +144,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/name/non-string',
+        type: '/rooms/players/create/name/non-string',
         title: 'type of "name" field is not a string',
       })
     })
@@ -155,7 +156,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/roomId/undefined',
+        type: '/rooms/players/create/roomId/undefined',
         title: '"roomId" field is not defined',
       })
     })
@@ -166,7 +167,7 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/roomId/empty',
+        type: '/rooms/players/create/roomId/empty',
         title: '"roomId" field is empty',
       })
     })
@@ -177,8 +178,254 @@ describe('Players', () => {
 
       expect(statusCode).toBe(400)
       expect(body).toStrictEqual({
-        type: '/rooms/id/players/create/roomId/invalid',
+        type: '/rooms/players/create/roomId/invalid',
         title: '"roomId" field is not a valid UUID',
+      })
+    })
+    it('returns error if roomId is not in db', async () => {
+      const { body, statusCode } = await request(app)
+        .post(`/rooms/d0870350-6ae7-4b58-bd09-aadd70d686b7'/players`)
+        .send({
+          ...testPlayer,
+          roomId: 'd0870350-6ae7-4b58-bd09-aadd70d686b7',
+        })
+
+      expect(statusCode).toBe(400)
+      expect(body).toStrictEqual({
+        type: '/rooms/players/create/roomId/not-found',
+        title: 'room is not found',
+      })
+    })
+  })
+
+  describe('Player Estimation In Room', () => {
+    it("updates player's estimation in the specified room room", async () => {
+      const mockedTime = mockTime()
+      const { body: room } = await createTestRoom()
+      const createPlayerParam: CreatePlayerParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        roomId: room.id,
+      }
+      const { body: player } = await createTestPlayer(createPlayerParam)
+
+      const updateParam = {
+        roomId: room.id,
+        playerId: player.id,
+        estimate: 2,
+        secretKey: player.secretKey,
+      }
+      const { body: updatedPlayer, statusCode } = await request(app)
+        .put(`/rooms/${room.id}/player/estimate`)
+        .send(updateParam)
+      expect(statusCode).toBe(200)
+      expect(updatedPlayer.estimate).toBe(2)
+      expect(updatedPlayer.updatedAt).toBe(mockedTime)
+    })
+
+    it('returns error if roomId is not a valid UUID', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/xyzxyz45/player/estimate`)
+        .send({
+          roomId: 'xyzxyz45',
+          playerId: '7a124d0e-b2b5-4711-bce3-12b9e5a81f82',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: '/rooms/player/estimate/roomId/invalid',
+        title: '"roomId" field is not a valid UUID',
+      })
+    })
+
+    it('returns error if roomId is not in rooms database', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/d0870350-6ae7-4b58-bd09-aadd70d686b7/player/estimate`)
+        .send({
+          roomId: 'd0870350-6ae7-4b58-bd09-aadd70d686b7',
+          playerId: 'f3b6d6a9-a7bc-4e62-bce2-b064712ef6db',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(400)
+      expect(body).toStrictEqual({
+        type: '/rooms/player/estimate/update/not-found',
+        title: 'room is not found',
+      })
+    })
+
+    it('returns error if roomId is undefined', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/7a124d0e-b2b5-4711-bce3-12b9e5a81f82/player/estimate`)
+        .send({
+          roomId: undefined,
+          playerId: 'f3b6d6a9-a7bc-4e62-bce2-b064712ef6db',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/roomId/undefined`,
+        title: `"roomId" field is not defined`,
+      })
+    })
+
+    it('returns error if roomId is empty', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/7a124d0e-b2b5-4711-bce3-12b9e5a81f82/player/estimate`)
+        .send({
+          roomId: '  ',
+          playerId: '7a124d0e-b2b5-4711-bce3-12b9e5a81f82',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/roomId/empty`,
+        title: `"roomId" field is empty`,
+      })
+    })
+
+    it('returns error if roomId is not string', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/7a124d0e-b2b5-4711-bce3-12b9e5a81f82/player/estimate`)
+        .send({
+          roomId: 123456,
+          playerId: '7a124d0e-b2b5-4711-bce3-12b9e5a81f82',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/roomId/non-string`,
+        title: `type of "roomId" field is not a string`,
+      })
+    })
+
+    it('returns error if playerId is not a valid UUID', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/33b4f55d-b8d2-49fa-ab2a-73171624f154/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: '7a124-12b9e5a81f82',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: '/rooms/player/estimate/playerId/invalid',
+        title: '"playerId" field is not a valid UUID',
+      })
+    })
+
+    it('returns error if playerId is not in players database', async () => {
+      //roomId should be in db and player's secretKey should be verified to be able to test playerId's existence in db
+      const { body: room } = await createTestRoom()
+      const secretKey = createAuthToken('8f7c47e8-54b0-4c35-8fc7-d13eb6404650')
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/${room.id}/player/estimate`)
+        .send({
+          roomId: room.id,
+          playerId: '8f7c47e8-54b0-4c35-8fc7-d13eb6404650',
+          estimate: 2,
+          secretKey,
+        })
+
+      expect(body).toStrictEqual({
+        type: '/rooms/player/estimate/update/no-found',
+        title: 'could not found the player in specified room',
+      })
+      expect(statusCode).toBe(400)
+    })
+
+    it('returns error if playerId is undefined', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/33b4f55d-b8d2-49fa-ab2a-73171624f154/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: undefined,
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/playerId/undefined`,
+        title: `"playerId" field is not defined`,
+      })
+    })
+
+    it('returns error if playerId is empty', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/7a124d0e-b2b5-4711-bce3-12b9e5a81f82/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: '  ',
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/playerId/empty`,
+        title: `"playerId" field is empty`,
+      })
+    })
+
+    it('returns error if playerId is not string', async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/33b4f55d-b8d2-49fa-ab2a-73171624f154/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: 73171,
+          estimate: 2,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/playerId/non-string`,
+        title: `type of "playerId" field is not a string`,
+      })
+    })
+
+    it("returns error if player's estimate is not number", async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/33b4f55d-b8d2-49fa-ab2a-73171624f154/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: 'abac523b-aa5c-4cfe-842d-2b8c28fcd9e5',
+          estimate: ' 34 ',
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/estimate/not-number`,
+        title: `type of "estimate" field is not a valid number`,
+      })
+    })
+    it("returns error if player's estimate is undefined", async () => {
+      const { body, statusCode } = await request(app)
+        .put(`/rooms/33b4f55d-b8d2-49fa-ab2a-73171624f154/player/estimate`)
+        .send({
+          roomId: '33b4f55d-b8d2-49fa-ab2a-73171624f154',
+          playerId: 'abac523b-aa5c-4cfe-842d-2b8c28fcd9e5',
+          estimate: undefined,
+          secretKey: '7a124d0e-b2b5-4711',
+        })
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: `/rooms/player/estimate/estimate/undefined`,
+        title: `"estimate" field is not defined`,
       })
     })
   })

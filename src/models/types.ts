@@ -1,9 +1,11 @@
 import { Knex } from 'knex'
 
-export enum Technique {
-  fibonacci = 1,
-  tShirtSizing,
+export const TECHNIQUES = {
+  fibonacci: 1,
+  tShirtSizing: 2,
 }
+export type Technique = keyof typeof TECHNIQUES
+
 export enum RoomState {
   planning = 1,
   revealed,
@@ -33,7 +35,7 @@ declare module 'knex/types/tables' {
   interface RoomRow {
     id: string
     state: RoomState
-    technique: Technique
+    technique: number
     createdAt: number
     updatedAt: number | null
   }

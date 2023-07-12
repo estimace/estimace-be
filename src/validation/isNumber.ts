@@ -18,7 +18,7 @@ export const isNumber: ValidationRule = (field) => {
       isValid: false,
       error: {
         type: `${namespace}/${name}/not-number`,
-        title: `"${name}" field is not a valid number`,
+        title: `type of "${name}" field is not a valid number`,
       },
     }
   }

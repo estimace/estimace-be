@@ -1,12 +1,9 @@
 import { v4 as uuid } from 'uuid'
-import knex from 'knex'
-import { config as knexConfig } from '../../knexfile'
+import { db } from 'app/db'
 
 import { Player, Technique } from './types'
 import { PlayerRow } from 'knex/types/tables'
-import { createAuthToken, verifyAuthToken, isValidEstimation } from '../utils'
-
-const db = knex(knexConfig.development)
+import { isValidEstimation, getTechniqueById } from '../utils'
 
 type AddPlayerParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -18,7 +15,10 @@ type PlayerEstimationParam = {
   roomId: string
 }
 
-export async function addPlayerToRoom(param: AddPlayerParam): Promise<Player> {
+export async function addPlayerToRoom(
+  param: AddPlayerParam,
+): Promise<PlayerRow> {
+  const room = await db('rooms').where({ id: param.roomId }).first()
   const player: PlayerRow = {
     id: uuid(),
     roomId: param.roomId,
@@ -31,22 +31,20 @@ export async function addPlayerToRoom(param: AddPlayerParam): Promise<Player> {
   }
   await db('players').insert(player)
 
-  const secretKey = createAuthToken(player.id)
-  return { ...player, secretKey } as Player
+  return player
 }
 
 export async function updatePlayerEstimation(
   param: PlayerEstimationParam,
 ): Promise<PlayerRow | null> {
-  if (!verifyAuthToken(param.player.id, param.player.secretKey as string))
-    return null
-
   const room = await db('rooms').where({ id: param.roomId }).first()
-
   if (
     !room ||
     param.player.estimate === null ||
-    !isValidEstimation(room.technique as Technique, param.player.estimate)
+    !isValidEstimation(
+      getTechniqueById(room.technique) as Technique,
+      param.player.estimate,
+    )
   )
     return null
 
@@ -55,8 +53,7 @@ export async function updatePlayerEstimation(
       id: param.player.id,
       roomId: param.roomId,
     })
-    .whereNull('roomId')
-    .update({ estimate: param.player.estimate }, [
+    .update({ estimate: param.player.estimate, updatedAt: Date.now() }, [
       'id',
       'roomId',
       'name',
@@ -66,7 +63,6 @@ export async function updatePlayerEstimation(
       'createdAt',
       'updatedAt',
     ])
-    .first()
 
-  return playersRow ? playersRow : null
+  return playersRow[0] ?? null
 }

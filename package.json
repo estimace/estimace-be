@@ -4,7 +4,7 @@
   "main": "index.js",
   "license": "MIT",
   "scripts": {
-    "start": "ts-node -r tsconfig-paths/register --esm src/index.ts",
+    "start": "ts-node -r tsconfig-paths/register --esm src/server.ts",
     "dev": "nodemon",
     "db:migrate:make": "yarn knex migrate:make estimace-migration",
     "db:migrate:latest": "yarn knex migrate:latest",

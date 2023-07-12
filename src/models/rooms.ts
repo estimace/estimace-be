@@ -1,11 +1,9 @@
 import { v4 as uuid } from 'uuid'
-import knex from 'knex'
-import { config as knexConfig } from '../../knexfile'
+import { db } from 'app/db'
 
-const db = knex(knexConfig.development)
-
-import { Room, Player, Technique, RoomState } from './types'
+import { Room, Player, Technique, RoomState, TECHNIQUES } from './types'
 import { PlayerRow } from 'knex/types/tables'
+import { getTechniqueById } from 'app/utils'
 
 type CreateRoomParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -13,10 +11,14 @@ type CreateRoomParam = {
 }
 
 export async function createRoom(param: CreateRoomParam): Promise<Room> {
-  const roomInsertParam: Omit<Room, 'players'> = {
+  type InsertParam = Omit<Room, 'players' | 'technique'> & {
+    technique: number
+  }
+
+  const roomInsertParam: InsertParam = {
     id: uuid(),
     state: RoomState.planning,
-    technique: param.technique,
+    technique: TECHNIQUES[param.technique],
     createdAt: Date.now(),
     updatedAt: null,
   }
@@ -38,21 +40,25 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
   return {
     ...roomInsertParam,
     players: [player],
+    technique: param.technique,
   }
 }
 
 export async function getRoom(id: string): Promise<Room | null> {
   const roomRow = await db('rooms').where({ id }).first()
-  if (!roomRow) return null
+  if (!roomRow) {
+    return null
+  }
 
   const playersRows = await db('players').where({ roomId: id })
+
   const room: Room = {
     ...roomRow,
+    technique: getTechniqueById(roomRow.technique) as Technique,
     players: playersRows.map((item) => ({
       ...item,
       isOwner: Boolean(item.isOwner),
     })),
   }
-
   return room
 }
