@@ -6,16 +6,22 @@ import { Player } from 'app/models/types'
 import { getRoom } from 'app/models/rooms'
 
 export const create: RequestHandler = async (req, res, next) => {
-  const validationResult = validate('/rooms/players/create', req.body, {
-    name: [validators.isNotEmptyString],
-    email: [validators.isNotEmptyString, validators.isEmail],
-    roomId: [validators.isNotEmptyString, validators.isUUID],
-  })
+  const roomId = req.params.id
+  const validationResult = validate(
+    '/rooms/players/create',
+    { ...req.body, roomId },
+    {
+      name: [validators.isNotEmptyString],
+      email: [validators.isNotEmptyString, validators.isEmail],
+      roomId: [validators.isNotEmptyString, validators.isUUID],
+    },
+  )
 
   if (!validationResult.isValid) {
     return res.status(400).json(validationResult.error)
   }
-  const room = await getRoom(req.body.roomId)
+
+  const room = await getRoom(roomId)
   if (!room) {
     return res.status(400).json({
       type: '/rooms/players/create/roomId/not-found',
@@ -24,7 +30,7 @@ export const create: RequestHandler = async (req, res, next) => {
   }
 
   const player = await addPlayerToRoom({
-    roomId: req.body.roomId,
+    roomId,
     player: {
       name: req.body.name,
       email: req.body.email,
@@ -32,20 +38,27 @@ export const create: RequestHandler = async (req, res, next) => {
   })
 
   const secretKey = createAuthToken(player.id)
+
   res.status(201).json({ ...player, secretKey } as Player)
 }
 
 export const updatePlayer: RequestHandler = async (req, res, next) => {
-  const validationResult = validate('/rooms/player/estimate', req.body, {
-    playerId: [validators.isNotEmptyString, validators.isUUID],
-    roomId: [validators.isNotEmptyString, validators.isUUID],
-    estimate: [validators.isNumber],
-  })
+  const roomId = req.params.roomId
+  const validationResult = validate(
+    '/rooms/player/estimate',
+    { ...req.body, roomId },
+    {
+      playerId: [validators.isNotEmptyString, validators.isUUID],
+      roomId: [validators.isNotEmptyString, validators.isUUID],
+      estimate: [validators.isNumber],
+    },
+  )
 
   if (!validationResult.isValid) {
     return res.status(404).json(validationResult.error)
   }
-  const room = await getRoom(req.body.roomId)
+
+  const room = await getRoom(roomId)
   if (!room) {
     return res.status(400).json({
       type: '/rooms/player/estimate/update/not-found',
@@ -65,8 +78,9 @@ export const updatePlayer: RequestHandler = async (req, res, next) => {
       id: req.body.playerId,
       secretKey: req.body.secretKey,
     },
-    roomId: req.body.roomId,
+    roomId,
   })
+
   if (!player) {
     return res.status(400).json({
       type: '/rooms/player/estimate/update/no-found',

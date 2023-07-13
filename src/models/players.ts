@@ -45,8 +45,9 @@ export async function updatePlayerEstimation(
       getTechniqueById(room.technique) as Technique,
       param.player.estimate,
     )
-  )
+  ) {
     return null
+  }
 
   const playersRow = await db('players')
     .where({

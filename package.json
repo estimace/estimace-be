@@ -6,7 +6,7 @@
   "scripts": {
     "start": "ts-node -r tsconfig-paths/register --esm src/server.ts",
     "dev": "nodemon",
-    "db:migrate:make": "yarn knex migrate:make estimace-migration",
+    "db:migrate:make": "yarn knex migrate:make",
     "db:migrate:latest": "yarn knex migrate:latest",
     "db:migrate:rollback": "yarn knex migrate:rollback",
     "test": "jest",
