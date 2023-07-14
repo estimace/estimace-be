@@ -9,7 +9,8 @@
     "db:migrate:make": "yarn knex migrate:make",
     "db:migrate:latest": "yarn knex migrate:latest",
     "db:migrate:rollback": "yarn knex migrate:rollback",
-    "test": "jest",
+    "test": "jest --forceExit",
+    "test:detect-leaks": "jest --detectLeaks --detectOpenHandles",
     "test:watch": "jest --watch --detectOpenHandles"
   },
   "dependencies": {

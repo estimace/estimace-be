@@ -1,7 +1,8 @@
+import 'tsconfig-paths/register'
 import type { Knex } from 'knex'
 import appConfig from 'app/config'
 
-const config: Record<string, Knex.Config> = {
+export const config: Record<string, Knex.Config> = {
   [appConfig.env]: appConfig.db,
 }
 

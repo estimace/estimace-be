@@ -29,15 +29,13 @@ export function mockTime(): number {
 export const createTestRoom = async (
   param: CreateTestRoomParam = createRoomParam,
 ): Promise<request.Response> => {
-  const createdRoomRes = await request(app).post('/rooms').send(param)
-  return createdRoomRes
+  return await request(app).post('/rooms').send(param)
 }
 
 export const createTestPlayer = async (
   param: CreateTestPlayerParam,
 ): Promise<request.Response> => {
-  const createdPlayerRes = await request(app)
+  return await request(app)
     .post(`/rooms/${param.roomId}/players`)
     .send({ name: param.name, email: param.email })
-  return createdPlayerRes
 }
