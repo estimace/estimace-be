@@ -3,7 +3,7 @@ import { createServer } from 'http'
 import { URL } from 'url'
 
 import config from './config'
-import { app } from './app'
+import { app } from './webApp'
 import { wss } from './wss'
 import type { WSConnectionParam } from './wss/types'
 import { verifyAuthToken } from './utils'

@@ -1,5 +1,5 @@
 import request from 'supertest'
-import { app } from 'app/app'
+import { app } from 'app/webApp'
 import { createTestRoom, uuidRegex, mockTime } from './utils'
 
 describe('Rooms', () => {

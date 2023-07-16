@@ -1,6 +1,6 @@
 import { Express } from 'express'
 
-import controllers from './controllers'
+import controllers from 'app/controllers'
 
 export function init(app: Express) {
   app.get('/rooms/:id', controllers.rooms.get)
