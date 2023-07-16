@@ -4,20 +4,9 @@ export type WSConnectionParam = {
   playerId: string
 }
 
-export type WSMessage = UpdateEstimateWSMessage | UpdateRoomStateWSMessage
-
-export type UpdateEstimateWSMessage = {
-  type: 'updateEstimate'
-  payload: {
-    estimate: number
-  }
-}
-
-export type UpdateRoomStateWSMessage = {
-  type: 'updateRoomState'
-  payload: {
-    state: RoomState
-  }
+export type WSMessage = {
+  type: string
+  payload: Record<string, unknown>
 }
 
 export function isWSMessage(message: {}): message is WSMessage {
@@ -26,6 +15,7 @@ export function isWSMessage(message: {}): message is WSMessage {
     typeof message.type === 'string' &&
     'payload' in message &&
     typeof message.payload === 'object' &&
+    message.payload !== null &&
     !Array.isArray(message.payload)
   )
 }
@@ -33,7 +23,7 @@ export function isWSMessage(message: {}): message is WSMessage {
 export type WSMessageHandler = (
   req: {
     connectionParam: WSConnectionParam
-    payload: Record<string, unknown>
+    payload: WSMessage['payload']
   },
   res: {
     sendMessage: (type: string, payload: unknown) => void
