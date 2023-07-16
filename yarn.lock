@@ -841,7 +841,7 @@
     "@types/cookiejar" "*"
     "@types/node" "*"
 
-"@types/supertest@^2.0.12":
+"@types/supertest@<7", "@types/supertest@^2.0.12":
   version "2.0.12"
   resolved "https://registry.yarnpkg.com/@types/supertest/-/supertest-2.0.12.tgz#ddb4a0568597c9aadff8dbec5b2e8fddbe8692fc"
   integrity sha512-X3HPWTwXRerBZS7Mo1k6vMVR1Z6zmJcDVn5O/31whe0tnjE4te6ZJSJGq1RiqHPjzPdMTfjCFogDJmwng9xHaQ==
@@ -858,7 +858,7 @@
   resolved "https://registry.yarnpkg.com/@types/validator/-/validator-13.7.17.tgz#0a6d1510395065171e3378a4afc587a3aefa7cc1"
   integrity sha512-aqayTNmeWrZcvnG2MG9eGYI6b7S5fl+yKgPs6bAjOTwPS316R5SxBGKvtSExfyoJU7pIeHJfsHI0Ji41RVMkvQ==
 
-"@types/ws@^8.5.5":
+"@types/ws@7.x || 8.x", "@types/ws@^8.5.5":
   version "8.5.5"
   resolved "https://registry.yarnpkg.com/@types/ws/-/ws-8.5.5.tgz#af587964aa06682702ee6dcbc7be41a80e4b28eb"
   integrity sha512-lwhs8hktwxSjf9UaZ9tG5M03PGogvFaH8gUgLNbN9HKIg0dvv6q+gkSuJ8HN4/VbyxkuLzCjlN7GquQ0gUJfIg==
@@ -3446,6 +3446,15 @@ supertest@^6.3.3:
     methods "^1.1.2"
     superagent "^8.0.5"
 
+superwstest@^2.0.3:
+  version "2.0.3"
+  resolved "https://registry.yarnpkg.com/superwstest/-/superwstest-2.0.3.tgz#7270ba3a8be071123100950724792cb30a4f28f8"
+  integrity sha512-NRZMg+1UU1KNWzkE/QBqBDuTKPG2vFBLvG4xahcPqzZynVnbs3idllwgUL7zglPXymPP1g04+3NDGhbt6NCa5A==
+  dependencies:
+    "@types/supertest" "<7"
+    "@types/ws" "7.x || 8.x"
+    ws "7.x || 8.x"
+
 supports-color@^5.3.0, supports-color@^5.5.0:
   version "5.5.0"
   resolved "https://registry.yarnpkg.com/supports-color/-/supports-color-5.5.0.tgz#e2e69a44ac8772f78a1ec0b35b689df6530efc8f"
@@ -3739,7 +3748,7 @@ write-file-atomic@^4.0.2:
     imurmurhash "^0.1.4"
     signal-exit "^3.0.7"
 
-ws@^8.13.0:
+"ws@7.x || 8.x", ws@^8.13.0:
   version "8.13.0"
   resolved "https://registry.yarnpkg.com/ws/-/ws-8.13.0.tgz#9a9fb92f93cf41512a0735c8f4dd09b8a1211cd0"
   integrity sha512-x9vcZYTrFPC7aSIbj7sRCYo7L/Xb8Iy+pW0ng0wt2vCJv7M9HOMy0UoN3rr+IFC7hb7vXoqS+P9ktyLLLhO+LA==

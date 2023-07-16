@@ -7,12 +7,15 @@ const dbType = process.env.DB_TYPE ?? 'sqlite3'
 const connectionString = process.env.DB_CONNECTION_STRING as string
 
 type Config = {
+  port: number
   env: string
   db: Knex.Config
   authTokenSeed: string
+  verbose: boolean
 }
 
 const config: Config = {
+  port: parseNumber(process.env.PORT, 0),
   env: process.env.NODE_ENV ?? 'development',
   db: {
     client: dbType,
@@ -29,6 +32,15 @@ const config: Config = {
     debug: process.env.DB_DEBUG === 'true',
   },
   authTokenSeed: process.env.AUTH_TOKEN_SEED as string,
+  verbose: process.env.VERBOSE === 'true',
+}
+
+function parseNumber(value: string | undefined, fallback: number) {
+  const parsedValue = Number(value)
+  if (isNaN(parsedValue)) {
+    return fallback
+  }
+  return parsedValue
 }
 
 export default config

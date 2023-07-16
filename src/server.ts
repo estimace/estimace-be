@@ -1,77 +1,52 @@
-import WebSocket from 'ws'
+import { AddressInfo } from 'net'
 import { createServer } from 'http'
-import dotenv from 'dotenv'
+import { URL } from 'url'
 
+import config from './config'
 import { app } from './app'
+import { wss } from './wss'
+import { verifyAuthToken } from './utils'
 
-dotenv.config()
+export const server = createServer(app)
 
-const port = process.env.PORT
-const server = createServer(app)
+server.on('upgrade', function upgrade(request, socket, head) {
+  if (!request.url) {
+    return destroy(400, 'Bad request')
+  }
 
-const wss = new WebSocket.Server({ server })
+  const { pathname } = new URL(`http://localhost${request.url}`)
 
-interface TypedWebSocket extends WebSocket {
-  isAlive: boolean
-}
+  if (pathname !== '/socket') {
+    return destroy(404, 'Not Found')
+  }
 
-//detect and close broken connections
-const interval = setInterval(function ping() {
-  wss.clients.forEach((ws: WebSocket) => {
-    const TypedWebSocket = ws as TypedWebSocket
-    if (TypedWebSocket.isAlive === false) {
-      return ws.terminate()
-    }
-    TypedWebSocket.isAlive = false
-    ws.ping()
+  const authHeader = request.headers.authorization
+
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return destroy(401, 'Unauthorized')
+  }
+
+  const [playerId, secretToken] = authHeader.substring(7).split(':')
+  if (!verifyAuthToken(playerId, secretToken)) {
+    return destroy(401, 'Authentication failed')
+  }
+
+  wss.handleUpgrade(request, socket, head, function done(ws) {
+    wss.emit('connection', ws, request)
   })
-}, 3000)
 
-wss.on('connection', (ws) => {
-  const TypedWebSocket = ws as TypedWebSocket
-  TypedWebSocket.isAlive = true
-  ws.on('error', console.error)
-  ws.on('pong', () => (TypedWebSocket.isAlive = true))
-
-  ws.on('message', (data, isBinary) => {
-    if (isBinary) {
-      return
-    }
-    try {
-      const receivedMessage = JSON.parse(data.toString())
-      switch (receivedMessage.type) {
-        case 'room-state':
-          //updateRoomState(receivedMessage.payload)
-          break
-        case 'player-estimate':
-          //updatePlayerEstimation(receivedMessage.payload)
-          break
-      }
-      wss.clients.forEach((client) => {
-        //A client WebSocket broadcasting to every other connected WebSocket clients, excluding itself: client !== ws
-        if (client !== ws && client.readyState === WebSocket.OPEN) {
-          client.send(
-            JSON.stringify({
-              type: receivedMessage.type,
-              payload: { ...receivedMessage.payload, secretKey: '' },
-            }),
-            {
-              binary: false,
-            },
-          )
-        }
-      })
-    } catch (error) {
-      console.log(error)
-      throw new Error(`error: ${data} is not a right message`)
-    }
-  })
+  function destroy(errorCode: number, errorMessage: string) {
+    socket.write(
+      `HTTP/1.1 ${errorCode} ${errorMessage}\r\n\r\n`,
+      'utf-8',
+      () => {
+        socket.destroy()
+      },
+    )
+  }
 })
 
-wss.on('close', function close() {
-  clearInterval(interval)
-})
-
-server.listen(port, () => {
-  console.log(`[server]: Server is running at http://localhost:${port}`)
+server.listen(config.port, () => {
+  const address = server.address() as AddressInfo
+  console.log(`[server]: Server is running at http://localhost:${address.port}`)
 })
