@@ -1,6 +1,6 @@
 import crypto from 'crypto'
 import config from 'app/config'
-import { TECHNIQUES, Technique } from './models/types'
+import { ROOM_STATES, RoomState, TECHNIQUES, Technique } from 'app/models/types'
 
 type TechniquesOptions = Record<Technique, string[]>
 
@@ -41,6 +41,15 @@ export function getTechniqueById(id: Number): Technique | null {
   for (const key in TECHNIQUES) {
     if (TECHNIQUES[key as Technique] === id) {
       return key as Technique
+    }
+  }
+  return null
+}
+
+export function getRoomStateById(id: Number): RoomState | null {
+  for (const key in ROOM_STATES) {
+    if (ROOM_STATES[key as RoomState] === id) {
+      return key as RoomState
     }
   }
   return null

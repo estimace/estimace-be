@@ -13,7 +13,7 @@ describe('Rooms', () => {
       const { body, statusCode } = await createTestRoom()
       expect(body).toStrictEqual(
         expect.objectContaining({
-          state: 1,
+          state: 'planning',
           technique: 'fibonacci',
           players: expect.arrayContaining([
             expect.objectContaining({
@@ -180,7 +180,7 @@ describe('Rooms', () => {
 
       expect(body).toStrictEqual({
         id: roomId,
-        state: 1,
+        state: 'planning',
         technique: 'fibonacci',
         players: expect.arrayContaining([
           expect.objectContaining({
@@ -217,7 +217,7 @@ describe('Rooms', () => {
         `/rooms/8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44`,
       )
       expect(body).toStrictEqual({
-        type: '/rooms/get/no-found',
+        type: '/rooms/get/not-found',
         title: 'could not found the room with specified id',
       })
       expect(statusCode).toBe(404)

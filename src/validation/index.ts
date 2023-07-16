@@ -2,7 +2,7 @@ import { isNotEmptyString } from './isNotEmptyString'
 import { isEmail } from './isEmail'
 import { isTechnique } from './isTechnique'
 import { isUUID } from './isUUID'
-import { isNumber } from './isNumber'
+import { isNumber, isNumberOrNull } from './isNumber'
 
 export { validate } from './validation'
 export const validators = {
@@ -11,4 +11,5 @@ export const validators = {
   isTechnique,
   isUUID,
   isNumber,
+  isNumberOrNull,
 }

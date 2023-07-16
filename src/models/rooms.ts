@@ -1,9 +1,20 @@
 import { v4 as uuid } from 'uuid'
 import { db } from 'app/db'
 
-import { Room, Player, Technique, RoomState, TECHNIQUES } from './types'
+import {
+  Room,
+  Player,
+  Technique,
+  RoomState,
+  TECHNIQUES,
+  ROOM_STATES,
+} from './types'
 import { PlayerRow } from 'knex/types/tables'
-import { getTechniqueById } from 'app/utils'
+import {
+  getRoomStateById,
+  getTechniqueById,
+  isValidEstimation,
+} from 'app/utils'
 
 type CreateRoomParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -11,13 +22,14 @@ type CreateRoomParam = {
 }
 
 export async function createRoom(param: CreateRoomParam): Promise<Room> {
-  type InsertParam = Omit<Room, 'players' | 'technique'> & {
+  type InsertParam = Omit<Room, 'players' | 'technique' | 'state'> & {
+    state: number
     technique: number
   }
 
   const roomInsertParam: InsertParam = {
     id: uuid(),
-    state: RoomState.planning,
+    state: ROOM_STATES.planning,
     technique: TECHNIQUES[param.technique],
     createdAt: Date.now(),
     updatedAt: null,
@@ -40,8 +52,37 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
   return {
     ...roomInsertParam,
     players: [player],
+    state: 'planning',
     technique: param.technique,
   }
+}
+
+export async function updateRoomState(
+  id: Room['id'],
+  state: RoomState,
+): Promise<Omit<Room, 'players'> | null> {
+  if (state === null) {
+    return null
+  }
+  const roomsRows = await db('rooms')
+    .where({
+      id,
+    })
+    .update({ state: ROOM_STATES[state], updatedAt: Date.now() }, [
+      'id',
+      'state',
+      'technique',
+      'createdAt',
+      'updatedAt',
+    ])
+
+  return roomsRows[0]
+    ? {
+        ...roomsRows[0],
+        technique: getTechniqueById(roomsRows[0].technique) as Technique,
+        state: getRoomStateById(roomsRows[0].state) as RoomState,
+      }
+    : null
 }
 
 export async function getRoom(id: string): Promise<Room | null> {
@@ -54,6 +95,7 @@ export async function getRoom(id: string): Promise<Room | null> {
 
   const room: Room = {
     ...roomRow,
+    state: getRoomStateById(roomRow.state) as RoomState,
     technique: getTechniqueById(roomRow.technique) as Technique,
     players: playersRows.map((item) => ({
       ...item,
@@ -61,4 +103,18 @@ export async function getRoom(id: string): Promise<Room | null> {
     })),
   }
   return room
+}
+
+export async function deleteRoom(id: string): Promise<void> {
+  return await db('rooms').where({ id }).delete()
+}
+
+export function isEstimationValidForRoom(
+  room: Room,
+  estimate: Player['estimate'],
+): boolean {
+  if (estimate === null) {
+    return true
+  }
+  return isValidEstimation(room.technique, estimate)
 }

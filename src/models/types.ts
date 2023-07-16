@@ -6,10 +6,11 @@ export const TECHNIQUES = {
 }
 export type Technique = keyof typeof TECHNIQUES
 
-export enum RoomState {
-  planning = 1,
-  revealed,
+export const ROOM_STATES = {
+  planning: 1,
+  revealed: 2,
 }
+export type RoomState = keyof typeof ROOM_STATES
 
 export type Room = {
   id: string
@@ -22,6 +23,7 @@ export type Room = {
 
 export type Player = {
   id: string
+  roomId: Room['id']
   name: string
   email: string
   isOwner: boolean
@@ -34,7 +36,7 @@ export type Player = {
 declare module 'knex/types/tables' {
   interface RoomRow {
     id: string
-    state: RoomState
+    state: number
     technique: number
     createdAt: number
     updatedAt: number | null

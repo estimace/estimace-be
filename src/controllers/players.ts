@@ -1,9 +1,15 @@
 import { RequestHandler } from 'express'
-import { addPlayerToRoom, updatePlayerEstimation } from 'app/models/players'
+
+import {
+  addPlayerToRoom,
+  getPlayer,
+  updatePlayerEstimation,
+} from 'app/models/players'
 import { validate, validators } from 'app/validation'
-import { verifyAuthToken, createAuthToken } from 'app/utils'
+import { createAuthToken } from 'app/utils'
 import { Player } from 'app/models/types'
-import { getRoom } from 'app/models/rooms'
+import { getRoom, isEstimationValidForRoom } from 'app/models/rooms'
+import { WSMessageHandler } from 'app/wss/types'
 
 export const create: RequestHandler = async (req, res, next) => {
   const roomId = req.params.id
@@ -42,51 +48,57 @@ export const create: RequestHandler = async (req, res, next) => {
   res.status(201).json({ ...player, secretKey } as Player)
 }
 
-export const updatePlayer: RequestHandler = async (req, res, next) => {
-  const roomId = req.params.roomId
+export const updateEstimate: WSMessageHandler = async (req, res) => {
+  const { estimate } = req.payload
   const validationResult = validate(
-    '/rooms/player/estimate',
-    { ...req.body, roomId },
+    '/rooms/player/estimate/update',
+    req.payload,
     {
-      playerId: [validators.isNotEmptyString, validators.isUUID],
-      roomId: [validators.isNotEmptyString, validators.isUUID],
-      estimate: [validators.isNumber],
+      estimate: [validators.isNumberOrNull],
     },
   )
 
   if (!validationResult.isValid) {
-    return res.status(404).json(validationResult.error)
+    const { type, title } = validationResult.error
+    return res.sendError(type, title)
   }
 
-  const room = await getRoom(roomId)
-  if (!room) {
-    return res.status(400).json({
-      type: '/rooms/player/estimate/update/not-found',
-      title: 'room is not found',
-    })
-  }
-  if (!verifyAuthToken(req.body.playerId, req.body.secretKey as string)) {
-    return res.status(401).json({
-      type: '/rooms/player/unauthorized',
-      title: 'The player has not provided valid authentication',
-    })
-  }
-
-  const player = await updatePlayerEstimation({
-    player: {
-      estimate: req.body.estimate,
-      id: req.body.playerId,
-      secretKey: req.body.secretKey,
-    },
-    roomId,
-  })
-
+  let player = await getPlayer(req.connectionParam.playerId)
   if (!player) {
-    return res.status(400).json({
-      type: '/rooms/player/estimate/update/no-found',
-      title: 'could not found the player in specified room',
-    })
+    return res.sendError(
+      '/rooms/player/estimate/update/player/not-found',
+      'could not found the player',
+    )
   }
 
-  res.status(200).json(player)
+  const room = await getRoom(player.roomId)
+  if (!room) {
+    return res.sendError(
+      '/rooms/player/estimate/update/room/not-found',
+      'could not found the room',
+    )
+  }
+
+  if (room.state === 'revealed') {
+    return res.sendError(
+      '/rooms/player/estimate/update/room/not-planning',
+      'can not update the estimate while room is not in "planning" state',
+    )
+  }
+
+  // We are asserting `estimate` type to number or null as we are sure about
+  // the type of it by using the validator function isNumberOrNull
+  if (!isEstimationValidForRoom(room, estimate as number | null)) {
+    return res.sendError(
+      '/rooms/player/estimate/update/estimate/out-of-range',
+      'estimate value is not in the range of valid estimates for the room',
+    )
+  }
+
+  player = await updatePlayerEstimation(
+    req.connectionParam.playerId,
+    req.payload.estimate as number,
+  )
+
+  res.sendMessage('estimateUpdated', player)
 }

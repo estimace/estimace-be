@@ -5,6 +5,7 @@ import { URL } from 'url'
 import config from './config'
 import { app } from './app'
 import { wss } from './wss'
+import type { WSConnectionParam } from './wss/types'
 import { verifyAuthToken } from './utils'
 
 export const server = createServer(app)
@@ -32,7 +33,10 @@ server.on('upgrade', function upgrade(request, socket, head) {
   }
 
   wss.handleUpgrade(request, socket, head, function done(ws) {
-    wss.emit('connection', ws, request)
+    const param: WSConnectionParam = {
+      playerId,
+    }
+    wss.emit('connection', ws, param)
   })
 
   function destroy(errorCode: number, errorMessage: string) {

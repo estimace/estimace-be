@@ -36,7 +36,7 @@ export const get: RequestHandler = async (req, res, next) => {
   const room = await getRoom(req.params.id)
   if (!room) {
     return res.status(404).json({
-      type: '/rooms/get/no-found',
+      type: '/rooms/get/not-found',
       title: 'could not found the room with specified id',
     })
   }
