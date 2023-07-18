@@ -16,9 +16,7 @@ export async function getRoomPlayersIds(
   return rows.map((item) => item.id)
 }
 
-export async function addPlayerToRoom(
-  param: AddPlayerParam,
-): Promise<PlayerRow> {
+export async function addPlayerToRoom(param: AddPlayerParam): Promise<Player> {
   const player: PlayerRow = {
     id: uuid(),
     roomId: param.roomId,

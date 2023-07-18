@@ -101,10 +101,7 @@ export async function getRoom(
     ...roomRow,
     state: getRoomStateById(roomRow.state) as RoomState,
     technique: getTechniqueById(roomRow.technique) as Technique,
-    players: playersRows.map((item) => ({
-      ...item,
-      isOwner: Boolean(item.isOwner),
-    })),
+    players: playersRows,
   }
   return room
 }
