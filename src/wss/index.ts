@@ -1,10 +1,9 @@
 import WebSocket from 'ws'
 
 import { parseJSON } from 'app/utils/json'
-import { WSConnectionParam, isWSMessage } from './types'
-import { updateEstimate } from 'app/controllers/players'
-import { updateRoomState } from 'app/controllers/rooms'
 import { Player } from 'app/models/types'
+import { routes } from './routes'
+import { WSConnectionParam, isWSMessage } from './types'
 
 export const wss = new WebSocket.Server({ noServer: true })
 
@@ -93,41 +92,33 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
       return sendError('ws/message/invalid', 'Data is not a valid message')
     }
 
-    switch (receivedMessage.type) {
-      case 'updateEstimate':
-        updateEstimate(
-          {
-            connectionParam: param,
-            payload: receivedMessage.payload,
-          },
-          {
-            sendMessage,
-            broadcastMessage,
-            sendError,
-          },
-        )
-        break
-
-      case 'updateRoomState':
-        updateRoomState(
-          {
-            connectionParam: param,
-            payload: receivedMessage.payload,
-          },
-          {
-            sendMessage,
-            broadcastMessage,
-            sendError,
-          },
-        )
-        break
-
-      default:
-        return sendError(
-          'ws/message/type/unknown',
-          'The value in the "type" field of the message is not supported',
-        )
+    const handler = routes[receivedMessage.type]
+    if (!handler) {
+      return sendError(
+        'ws/message/type/unknown',
+        'The value in the "type" field of the message is not supported',
+      )
     }
+    handler(
+      {
+        connectionParam: param,
+        payload: receivedMessage.payload,
+      },
+      {
+        sendMessage,
+        broadcastMessage,
+        sendError,
+      },
+    ).catch((err) => {
+      console.error(
+        'Unexpected error while processing a message from ws client.',
+      )
+      console.error(err)
+      return sendError(
+        'ws/message/unexpected',
+        'An unexpected error occurred on the server',
+      )
+    })
   })
 })
 
