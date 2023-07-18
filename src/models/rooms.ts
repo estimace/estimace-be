@@ -57,17 +57,15 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
   }
 }
 
-export async function updateRoomState(
+export async function updateState(
   id: Room['id'],
   state: RoomState,
 ): Promise<Omit<Room, 'players'> | null> {
-  if (state === null) {
-    return null
-  }
   const roomsRows = await db('rooms')
     .where({
       id,
     })
+    .whereNot('state', ROOM_STATES[state])
     .update({ state: ROOM_STATES[state], updatedAt: Date.now() }, [
       'id',
       'state',
@@ -101,6 +99,22 @@ export async function getRoom(id: string): Promise<Room | null> {
       ...item,
       isOwner: Boolean(item.isOwner),
     })),
+  }
+  return room
+}
+
+export async function getRoomWithoutPlayers(
+  id: string,
+): Promise<Omit<Room, 'players'> | null> {
+  const roomRow = await db('rooms').where({ id }).first()
+  if (!roomRow) {
+    return null
+  }
+
+  const room: Omit<Room, 'players'> = {
+    ...roomRow,
+    state: getRoomStateById(roomRow.state) as RoomState,
+    technique: getTechniqueById(roomRow.technique) as Technique,
   }
   return room
 }

@@ -1,6 +1,14 @@
 import { RequestHandler } from 'express'
-import { createRoom, getRoom } from 'app/models/rooms'
+import {
+  createRoom,
+  getRoom,
+  getRoomWithoutPlayers,
+  updateState,
+} from 'app/models/rooms'
 import { validate, validators } from 'app/validation'
+import { WSMessageHandler } from 'app/wss/types'
+import { getPlayer } from 'app/models/players'
+import { RoomState } from 'app/models/types'
 
 export const create: RequestHandler = async (req, res, next) => {
   const validationResult = validate('/rooms/create', req.body, {
@@ -42,4 +50,53 @@ export const get: RequestHandler = async (req, res, next) => {
   }
 
   res.status(200).json(room)
+}
+
+export const updateRoomState: WSMessageHandler = async (req, res) => {
+  const validationResult = validate('/rooms/update/state', req.payload, {
+    state: [validators.isNotEmptyString, validators.isRoomState],
+  })
+
+  if (!validationResult.isValid) {
+    const { type, title } = validationResult.error
+    return res.sendError(type, title)
+  }
+
+  let player = await getPlayer(req.connectionParam.playerId)
+  if (!player) {
+    return res.sendError(
+      '/rooms/update/state/player/not-found',
+      'could not found the player',
+    )
+  }
+  if (!player.isOwner) {
+    return res.sendError(
+      '/rooms/update/state/player/not-room-owner',
+      'the player does not have the authority to change the state of the room',
+    )
+  }
+
+  const room = await getRoomWithoutPlayers(player.roomId)
+  if (!room) {
+    return res.sendError(
+      '/rooms/update/state/room/not-found',
+      'could not found the room',
+    )
+  }
+  if (room.state === req.payload.state) {
+    return res.sendError(
+      '/rooms/update/state/sameState',
+      'The requested state is the same as room state',
+    )
+  }
+
+  const updatedRoom = await updateState(room.id, req.payload.state as RoomState)
+  if (!updatedRoom) {
+    return res.sendError(
+      '/rooms/update/state/error-updating-db',
+      'un error occurred while updating the room state in the database',
+    )
+  }
+
+  res.sendMessage('roomStateUpdated', updatedRoom)
 }

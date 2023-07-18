@@ -3,6 +3,7 @@ import WebSocket from 'ws'
 import { parseJSON } from 'app/utils/json'
 import { WSConnectionParam, isWSMessage } from './types'
 import { updateEstimate } from 'app/controllers/players'
+import { updateRoomState } from 'app/controllers/rooms'
 
 export const wss = new WebSocket.Server({ noServer: true })
 
@@ -25,8 +26,6 @@ const interval = setInterval(function ping() {
 wss.on('connection', (ws, param: WSConnectionParam) => {
   const TypedWebSocket = ws as TypedWebSocket
   TypedWebSocket.isAlive = true
-  ws.on('error', console.error)
-  ws.on('pong', () => (TypedWebSocket.isAlive = true))
 
   function sendMessage(type: string, payload: unknown) {
     ws.send(
@@ -45,6 +44,8 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
     })
   }
 
+  ws.on('error', console.error)
+  ws.on('pong', () => (TypedWebSocket.isAlive = true))
   ws.on('message', async (data, isBinary: any) => {
     if (isBinary) {
       return sendError(
@@ -77,6 +78,16 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
         break
 
       case 'updateRoomState':
+        await updateRoomState(
+          {
+            connectionParam: param,
+            payload: receivedMessage.payload,
+          },
+          {
+            sendMessage,
+            sendError,
+          },
+        )
         break
 
       default:
