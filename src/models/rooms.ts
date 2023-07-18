@@ -83,13 +83,19 @@ export async function updateState(
     : null
 }
 
-export async function getRoom(id: string): Promise<Room | null> {
+export async function getRoom(
+  id: string,
+  options: { includePlayers: boolean } = { includePlayers: true },
+): Promise<Room | null> {
   const roomRow = await db('rooms').where({ id }).first()
   if (!roomRow) {
     return null
   }
 
-  const playersRows = await db('players').where({ roomId: id })
+  let playersRows: PlayerRow[] = []
+  if (options.includePlayers) {
+    playersRows = await db('players').where({ roomId: id })
+  }
 
   const room: Room = {
     ...roomRow,
@@ -99,22 +105,6 @@ export async function getRoom(id: string): Promise<Room | null> {
       ...item,
       isOwner: Boolean(item.isOwner),
     })),
-  }
-  return room
-}
-
-export async function getRoomWithoutPlayers(
-  id: string,
-): Promise<Omit<Room, 'players'> | null> {
-  const roomRow = await db('rooms').where({ id }).first()
-  if (!roomRow) {
-    return null
-  }
-
-  const room: Omit<Room, 'players'> = {
-    ...roomRow,
-    state: getRoomStateById(roomRow.state) as RoomState,
-    technique: getTechniqueById(roomRow.technique) as Technique,
   }
   return room
 }

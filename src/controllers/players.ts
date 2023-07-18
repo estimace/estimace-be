@@ -3,6 +3,7 @@ import { RequestHandler } from 'express'
 import {
   addPlayerToRoom,
   getPlayer,
+  getRoomPlayersIds,
   updatePlayerEstimation,
 } from 'app/models/players'
 import { validate, validators } from 'app/validation'
@@ -71,7 +72,7 @@ export const updateEstimate: WSMessageHandler = async (req, res) => {
     )
   }
 
-  const room = await getRoom(player.roomId)
+  const room = await getRoom(player.roomId, { includePlayers: false })
   if (!room) {
     return res.sendError(
       '/rooms/player/estimate/update/room/not-found',
@@ -101,4 +102,7 @@ export const updateEstimate: WSMessageHandler = async (req, res) => {
   )
 
   res.sendMessage('estimateUpdated', player)
+
+  const roomPlayersIds = await getRoomPlayersIds(room.id)
+  res.broadcastMessage('estimateUpdated', player, roomPlayersIds)
 }

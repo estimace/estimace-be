@@ -11,7 +11,8 @@
     "db:migrate:rollback": "yarn knex migrate:rollback",
     "test": "jest --forceExit",
     "test:detect-leaks": "jest --detectLeaks --detectOpenHandles",
-    "test:watch": "jest --watch --detectOpenHandles"
+    "test:watch": "jest --watch --detectOpenHandles",
+    "test:coverage": "yarn test --coverage"
   },
   "dependencies": {
     "@types/sqlite3": "^3.1.8",

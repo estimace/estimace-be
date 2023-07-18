@@ -1,13 +1,8 @@
 import { RequestHandler } from 'express'
-import {
-  createRoom,
-  getRoom,
-  getRoomWithoutPlayers,
-  updateState,
-} from 'app/models/rooms'
+import { createRoom, getRoom, updateState } from 'app/models/rooms'
 import { validate, validators } from 'app/validation'
 import { WSMessageHandler } from 'app/wss/types'
-import { getPlayer } from 'app/models/players'
+import { getPlayer, getRoomPlayersIds } from 'app/models/players'
 import { RoomState } from 'app/models/types'
 
 export const create: RequestHandler = async (req, res, next) => {
@@ -76,7 +71,7 @@ export const updateRoomState: WSMessageHandler = async (req, res) => {
     )
   }
 
-  const room = await getRoomWithoutPlayers(player.roomId)
+  const room = await getRoom(player.roomId, { includePlayers: false })
   if (!room) {
     return res.sendError(
       '/rooms/update/state/room/not-found',
@@ -99,4 +94,7 @@ export const updateRoomState: WSMessageHandler = async (req, res) => {
   }
 
   res.sendMessage('roomStateUpdated', updatedRoom)
+
+  const roomPlayersIds = await getRoomPlayersIds(room.id)
+  res.broadcastMessage('roomStateUpdated', updatedRoom, roomPlayersIds)
 }

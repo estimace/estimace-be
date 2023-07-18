@@ -1,4 +1,4 @@
-import request from 'superwstest'
+import request, { WSChain } from 'superwstest'
 import { server } from 'app/server'
 import { createAuthToken } from 'app/utils'
 
@@ -11,7 +11,7 @@ import {
   createTestRoom,
   mockTime,
 } from './utils'
-import { Player, ROOM_STATES, Room } from 'app/models/types'
+import { assertNotReceivedAnyMessage } from './utils/ws'
 
 describe('WebSocket Server', () => {
   afterEach(() => {
@@ -24,12 +24,12 @@ describe('WebSocket Server', () => {
 
   describe('general message validation', () => {
     it('does not expects messages in binary format', async () => {
-      const playerId = '420e0ae8-ffb5-41ca-bbf1-1f75d578d731'
-      const authToken = createAuthToken(playerId)
+      const { player } = await createRoomAndTestPlayer()
+      const authToken = createAuthToken(player.id)
 
       await request(server)
         .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
+          headers: { Authorization: `Bearer ${player.id}:${authToken}` },
         })
         .sendBinary([1, 2, 3])
         .expectJson({
@@ -100,22 +100,7 @@ describe('WebSocket Server', () => {
         .close()
     })
   })
-  async function createRoomAndTestPlayer() {
-    const { body: room } = await createTestRoom()
-    const createPlayerParam: CreateTestPlayerParam = {
-      email: 'darth@vader.com',
-      name: 'Darth Vader',
-      roomId: room.id,
-    }
-    const { body: player } = await createTestPlayer(createPlayerParam)
-    const authToken = createAuthToken(player.id)
 
-    const ws = request(server).ws('/socket', {
-      headers: { Authorization: `Bearer ${player.id}:${authToken}` },
-    })
-
-    return { ws, room, player }
-  }
   describe('Player Estimation In Room', () => {
     it(`updates player's estimation if the ws message is a valid message with type "updateEstimate" and payload object has the "estimate" field`, async () => {
       const mockedTime = mockTime()
@@ -137,6 +122,40 @@ describe('WebSocket Server', () => {
           },
         })
         .close()
+    })
+
+    it(`broadcast the updated estimate to other players in the room`, async () => {
+      const mockedTime = mockTime()
+      const { sutRoomOwner, sutRoomPlayer, controlRoomOwner } =
+        await createItemsForBroadcastTest()
+      const expectedPayload = {
+        id: sutRoomPlayer.player.id,
+        roomId: sutRoomPlayer.room.id,
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        estimate: 4,
+        isOwner: 0,
+        createdAt: mockedTime,
+        updatedAt: mockedTime,
+      }
+
+      await sutRoomPlayer.ws
+        .sendJson({ type: 'updateEstimate', payload: { estimate: 4 } })
+        .expectJson({
+          type: 'estimateUpdated',
+          payload: expectedPayload,
+        })
+
+      await sutRoomOwner.ws.expectJson({
+        type: 'estimateUpdated',
+        payload: expectedPayload,
+      })
+
+      await assertNotReceivedAnyMessage(controlRoomOwner.ws)
+
+      await sutRoomPlayer.ws.close()
+      await sutRoomOwner.ws.close()
+      await controlRoomOwner.ws.close()
     })
 
     it.each([false, true, '', '  ', 'foo-bar'])(
@@ -267,6 +286,38 @@ describe('WebSocket Server', () => {
           },
         })
         .close()
+    })
+
+    it(`broadcast the updated of room state to other players in the room`, async () => {
+      const mockedTime = mockTime()
+      const { sutRoomOwner, sutRoomPlayer, controlRoomOwner } =
+        await createItemsForBroadcastTest()
+
+      const expectedPayload = {
+        id: sutRoomOwner.room.id,
+        state: 'revealed',
+        technique: 'fibonacci',
+        createdAt: mockedTime,
+        updatedAt: mockedTime,
+      }
+
+      await sutRoomOwner.ws
+        .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })
+        .expectJson({
+          type: 'roomStateUpdated',
+          payload: expectedPayload,
+        })
+
+      await sutRoomPlayer.ws.expectJson({
+        type: 'roomStateUpdated',
+        payload: expectedPayload,
+      })
+
+      await assertNotReceivedAnyMessage(controlRoomOwner.ws)
+
+      await sutRoomPlayer.ws.close()
+      await sutRoomOwner.ws.close()
+      await controlRoomOwner.ws.close()
     })
     it('returns error if room is not in a valid different state format', async () => {
       const { ws } = await createRoomAndOwnerPlayerForTest()
@@ -413,3 +464,70 @@ describe('WebSocket Server', () => {
     })
   })
 })
+
+async function createRoomAndTestPlayer() {
+  const { body: room } = await createTestRoom()
+  const createPlayerParam: CreateTestPlayerParam = {
+    email: 'darth@vader.com',
+    name: 'Darth Vader',
+    roomId: room.id,
+  }
+  const { body: player } = await createTestPlayer(createPlayerParam)
+
+  const authToken = createAuthToken(player.id)
+  const ws = request(server).ws('/socket', {
+    headers: { Authorization: `Bearer ${player.id}:${authToken}` },
+  })
+  return { ws, room, player }
+}
+
+async function createItemsForBroadcastTest() {
+  const { body: sutRoom } = await createTestRoom()
+  const { body: controlRoom } = await createTestRoom()
+
+  const { body: sutRoomPlayer } = await createTestPlayer({
+    email: 'darth@vader.com',
+    name: 'Darth Vader',
+    roomId: sutRoom.id,
+  })
+
+  const sutRoomOwnerWs = request(server).ws('/socket', {
+    headers: {
+      Authorization: `Bearer ${sutRoom.players[0].id}:${createAuthToken(
+        sutRoom.players[0].id,
+      )}`,
+    },
+  })
+  const controlRoomOwnerWs = request(server).ws('/socket', {
+    headers: {
+      Authorization: `Bearer ${controlRoom.players[0].id}:${createAuthToken(
+        controlRoom.players[0].id,
+      )}`,
+    },
+  })
+  const sutRoomPlayerWs = request(server).ws('/socket', {
+    headers: {
+      Authorization: `Bearer ${sutRoomPlayer.id}:${createAuthToken(
+        sutRoomPlayer.id,
+      )}`,
+    },
+  })
+
+  return {
+    sutRoomOwner: {
+      ws: sutRoomOwnerWs,
+      room: sutRoom,
+      player: sutRoom.players[0],
+    },
+    sutRoomPlayer: {
+      ws: sutRoomPlayerWs,
+      room: sutRoom,
+      player: sutRoomPlayer,
+    },
+    controlRoomOwner: {
+      ws: controlRoomOwnerWs,
+      room: controlRoom,
+      player: controlRoom.players[0],
+    },
+  }
+}

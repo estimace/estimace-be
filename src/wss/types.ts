@@ -1,4 +1,4 @@
-import { RoomState } from 'app/models/types'
+import { Player } from 'app/models/types'
 
 export type WSConnectionParam = {
   playerId: string
@@ -28,5 +28,10 @@ export type WSMessageHandler = (
   res: {
     sendMessage: (type: string, payload: unknown) => void
     sendError: (errorType: string, title: string) => void
+    broadcastMessage: (
+      type: string,
+      payload: unknown,
+      playersIds: Array<Player['id']>,
+    ) => void
   },
 ) => Promise<void>

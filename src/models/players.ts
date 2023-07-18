@@ -1,9 +1,8 @@
 import { v4 as uuid } from 'uuid'
 import { db } from 'app/db'
 
-import { Player, Technique } from './types'
+import { Player, Room } from './types'
 import { PlayerRow } from 'knex/types/tables'
-import { isValidEstimation, getTechniqueById } from '../utils'
 
 type AddPlayerParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -12,6 +11,13 @@ type AddPlayerParam = {
 
 type PlayerEstimationParam = {
   player: Pick<Player, 'id' | 'estimate'>
+}
+
+export async function getRoomPlayersIds(
+  roomId: Room['id'],
+): Promise<Player['id'][]> {
+  const rows = await db('players').select('id').where({ roomId })
+  return rows.map((item) => item.id)
 }
 
 export async function addPlayerToRoom(
