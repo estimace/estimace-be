@@ -31,7 +31,7 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
     id: uuid(),
     state: ROOM_STATES.planning,
     technique: TECHNIQUES[param.technique],
-    createdAt: Date.now(),
+    createdAt: new Date(),
     updatedAt: null,
   }
 
@@ -42,7 +42,7 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
     name: param.player.name,
     estimate: null,
     isOwner: true,
-    createdAt: Date.now(),
+    createdAt: new Date(),
     updatedAt: null,
   }
 
@@ -66,7 +66,7 @@ export async function updateState(
       id,
     })
     .whereNot('state', ROOM_STATES[state])
-    .update({ state: ROOM_STATES[state], updatedAt: Date.now() }, [
+    .update({ state: ROOM_STATES[state], updatedAt: new Date() }, [
       'id',
       'state',
       'technique',

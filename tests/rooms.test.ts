@@ -1,10 +1,11 @@
 import request from 'supertest'
 import { app } from 'app/webApp'
-import { createTestRoom, uuidRegex, mockTime } from './utils'
+import { createTestRoom, uuidRegex, mockTime, restoreTimeMock } from './utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    restoreTimeMock()
   })
 
   describe('Create Room', () => {
@@ -21,11 +22,11 @@ describe('Rooms', () => {
               name: 'Darth Vader',
               estimate: null,
               isOwner: true,
-              createdAt: mockedTime,
+              createdAt: mockedTime.toISOString(),
               updatedAt: null,
             }),
           ]),
-          createdAt: mockedTime,
+          createdAt: mockedTime.toISOString(),
           updatedAt: null,
         }),
       )
@@ -189,11 +190,11 @@ describe('Rooms', () => {
             name: 'Darth Vader',
             estimate: null,
             isOwner: true,
-            createdAt: mockedTime,
+            createdAt: mockedTime.toISOString(),
             updatedAt: null,
           }),
         ]),
-        createdAt: mockedTime,
+        createdAt: mockedTime.toISOString(),
         updatedAt: null,
       })
       expect(statusCode).toBe(200)

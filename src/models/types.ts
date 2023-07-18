@@ -17,8 +17,8 @@ export type Room = {
   state: RoomState
   technique: Technique
   players: Player[]
-  createdAt: number
-  updatedAt: number | null
+  createdAt: Date
+  updatedAt: Date | null
 }
 
 export type Player = {
@@ -28,8 +28,8 @@ export type Player = {
   email: string
   isOwner: boolean
   estimate: number | null
-  createdAt: number
-  updatedAt: number | null
+  createdAt: Date
+  updatedAt: Date | null
   secretKey?: string
 }
 
@@ -38,8 +38,8 @@ declare module 'knex/types/tables' {
     id: string
     state: number
     technique: number
-    createdAt: number
-    updatedAt: number | null
+    createdAt: Date
+    updatedAt: Date | null
   }
 
   interface PlayerRow {
@@ -49,8 +49,8 @@ declare module 'knex/types/tables' {
     email: string
     isOwner: boolean
     estimate: number | null
-    createdAt: number
-    updatedAt: number | null
+    createdAt: Date
+    updatedAt: Date | null
   }
 
   interface Tables {

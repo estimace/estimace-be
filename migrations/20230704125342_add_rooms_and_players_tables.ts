@@ -6,8 +6,8 @@ export async function up(knex: Knex): Promise<void> {
       roomTable.uuid('id').unique().notNullable().primary()
       roomTable.integer('state').notNullable()
       roomTable.integer('technique').notNullable()
-      roomTable.integer('createdAt').notNullable()
-      roomTable.integer('updatedAt')
+      roomTable.timestamp('createdAt').notNullable()
+      roomTable.timestamp('updatedAt')
     })
     .createTable('players', (playersTable) => {
       playersTable.uuid('id').unique().notNullable().primary()
@@ -21,8 +21,8 @@ export async function up(knex: Knex): Promise<void> {
       playersTable.string('email').notNullable()
       playersTable.boolean('isOwner').notNullable()
       playersTable.integer('estimate')
-      playersTable.integer('createdAt').notNullable()
-      playersTable.integer('updatedAt')
+      playersTable.timestamp('createdAt').notNullable()
+      playersTable.timestamp('updatedAt')
     })
 }
 

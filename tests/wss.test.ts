@@ -10,12 +10,14 @@ import {
   createTestPlayer,
   createTestRoom,
   mockTime,
+  restoreTimeMock,
 } from './utils'
 import { assertNotReceivedAnyMessage } from './utils/ws'
 
 describe('WebSocket Server', () => {
   afterEach(() => {
     jest.restoreAllMocks()
+    restoreTimeMock()
   })
 
   afterAll((done) => {
@@ -116,9 +118,9 @@ describe('WebSocket Server', () => {
             email: 'darth@vader.com',
             name: 'Darth Vader',
             estimate: 4,
-            isOwner: 0,
-            createdAt: mockedTime,
-            updatedAt: mockedTime,
+            isOwner: false,
+            createdAt: mockedTime.toISOString(),
+            updatedAt: mockedTime.toISOString(),
           },
         })
         .close()
@@ -134,9 +136,9 @@ describe('WebSocket Server', () => {
         email: 'darth@vader.com',
         name: 'Darth Vader',
         estimate: 4,
-        isOwner: 0,
-        createdAt: mockedTime,
-        updatedAt: mockedTime,
+        isOwner: false,
+        createdAt: mockedTime.toISOString(),
+        updatedAt: mockedTime.toISOString(),
       }
 
       await sutRoomPlayer.ws
@@ -281,8 +283,8 @@ describe('WebSocket Server', () => {
             id: room.id,
             state: 'revealed',
             technique: 'fibonacci',
-            createdAt: mockedTime,
-            updatedAt: mockedTime,
+            createdAt: mockedTime.toISOString(),
+            updatedAt: mockedTime.toISOString(),
           },
         })
         .close()
@@ -297,8 +299,8 @@ describe('WebSocket Server', () => {
         id: sutRoomOwner.room.id,
         state: 'revealed',
         technique: 'fibonacci',
-        createdAt: mockedTime,
-        updatedAt: mockedTime,
+        createdAt: mockedTime.toISOString(),
+        updatedAt: mockedTime.toISOString(),
       }
 
       await sutRoomOwner.ws
@@ -319,6 +321,7 @@ describe('WebSocket Server', () => {
       await sutRoomOwner.ws.close()
       await controlRoomOwner.ws.close()
     })
+
     it('returns error if room is not in a valid different state format', async () => {
       const { ws } = await createRoomAndOwnerPlayerForTest()
       await ws

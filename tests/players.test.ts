@@ -5,12 +5,13 @@ import {
   createTestPlayer,
   mockTime,
   CreateTestPlayerParam,
+  restoreTimeMock,
 } from './utils'
-import { createAuthToken } from 'app/utils'
 
 describe('Players', () => {
   beforeEach(() => {
     jest.restoreAllMocks()
+    restoreTimeMock()
   })
 
   const testRoomId = '8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44'
@@ -47,7 +48,7 @@ describe('Players', () => {
             name: 'Darth Vader',
             estimate: null,
             isOwner: true,
-            createdAt: mockedTime,
+            createdAt: mockedTime.toISOString(),
             updatedAt: null,
           }),
           expect.objectContaining({
@@ -56,11 +57,11 @@ describe('Players', () => {
             name: 'Darth Vader',
             estimate: null,
             isOwner: false,
-            createdAt: mockedTime,
+            createdAt: mockedTime.toISOString(),
             updatedAt: null,
           }),
         ]),
-        createdAt: mockedTime,
+        createdAt: mockedTime.toISOString(),
         updatedAt: null,
       })
     })

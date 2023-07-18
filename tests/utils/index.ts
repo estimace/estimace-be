@@ -21,10 +21,14 @@ export type CreateTestPlayerParam = {
   roomId: string
 }
 
-export function mockTime(): number {
-  const mockedTime: number = 1689077021858
-  jest.spyOn(Date, 'now').mockReturnValue(mockedTime)
-  return mockedTime
+export function mockTime(): Date {
+  const mockedDate = new Date(2020, 7, 10)
+  jest.useFakeTimers({ now: mockedDate })
+  return mockedDate
+}
+
+export function restoreTimeMock() {
+  jest.useRealTimers()
 }
 
 export const createTestRoom = async (

@@ -9,10 +9,6 @@ type AddPlayerParam = {
   roomId: string
 }
 
-type PlayerEstimationParam = {
-  player: Pick<Player, 'id' | 'estimate'>
-}
-
 export async function getRoomPlayersIds(
   roomId: Room['id'],
 ): Promise<Player['id'][]> {
@@ -23,7 +19,6 @@ export async function getRoomPlayersIds(
 export async function addPlayerToRoom(
   param: AddPlayerParam,
 ): Promise<PlayerRow> {
-  const room = await db('rooms').where({ id: param.roomId }).first()
   const player: PlayerRow = {
     id: uuid(),
     roomId: param.roomId,
@@ -31,7 +26,7 @@ export async function addPlayerToRoom(
     name: param.player.name,
     estimate: null,
     isOwner: false,
-    createdAt: Date.now(),
+    createdAt: new Date(),
     updatedAt: null,
   }
   await db('players').insert(player)
@@ -47,7 +42,7 @@ export async function updatePlayerEstimation(
     .where({
       id,
     })
-    .update({ estimate: estimate, updatedAt: Date.now() }, [
+    .update({ estimate: estimate, updatedAt: new Date() }, [
       'id',
       'roomId',
       'name',
