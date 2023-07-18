@@ -7,8 +7,12 @@ import { RoomState } from 'app/models/types'
 
 export const create: RequestHandler = async (req, res, next) => {
   const validationResult = validate('/rooms/create', req.body, {
-    name: [validators.isNotEmptyString],
-    email: [validators.isNotEmptyString, validators.isEmail],
+    name: [validators.isNotEmptyString, validators.isStringWithMaxLength(255)],
+    email: [
+      validators.isNotEmptyString,
+      validators.isStringWithMaxLength(255),
+      validators.isEmail,
+    ],
     technique: [validators.isNotEmptyString, validators.isTechnique],
   })
 

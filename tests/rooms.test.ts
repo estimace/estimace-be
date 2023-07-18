@@ -89,6 +89,22 @@ describe('Rooms', () => {
       })
     })
 
+    it('returns error if email address is more than 255 characters', async () => {
+      const { body, statusCode } = await request(app)
+        .post('/rooms')
+        .send({
+          email: new Array(256).fill('x').join(''),
+          name: 'Darth Vader',
+          technique: 'fibonacci',
+        })
+
+      expect(statusCode).toBe(400)
+      expect(body).toStrictEqual({
+        type: '/rooms/create/email/too-long',
+        title: 'length of "email" field can not be greater than 255',
+      })
+    })
+
     it('returns error if player name is empty', async () => {
       const { body, statusCode } = await request(app).post('/rooms').send({
         email: 'darth@vader.com',
@@ -127,6 +143,22 @@ describe('Rooms', () => {
       expect(body).toStrictEqual({
         type: '/rooms/create/name/non-string',
         title: 'type of "name" field is not a string',
+      })
+    })
+
+    it('returns error if player name is more than 255 characters', async () => {
+      const { body, statusCode } = await request(app)
+        .post('/rooms')
+        .send({
+          email: 'darth@vader.com',
+          name: new Array(256).fill('x').join(''),
+          technique: 'fibonacci',
+        })
+
+      expect(statusCode).toBe(400)
+      expect(body).toStrictEqual({
+        type: '/rooms/create/name/too-long',
+        title: 'length of "name" field can not be greater than 255',
       })
     })
 
