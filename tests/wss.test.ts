@@ -1,8 +1,8 @@
-import request, { WSChain } from 'superwstest'
+import request from 'superwstest'
 import { server } from 'app/server'
 import { createAuthToken } from 'app/utils'
 
-import { deleteRoom, updateState } from 'app/models/rooms'
+import { updateState } from 'app/models/rooms'
 import * as roomsModel from 'app/models/rooms'
 
 import {
@@ -15,7 +15,7 @@ import { assertNotReceivedAnyMessage } from './utils/ws'
 
 describe('WebSocket Server', () => {
   afterEach(() => {
-    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   afterAll((done) => {
@@ -210,8 +210,8 @@ describe('WebSocket Server', () => {
     })
 
     it('return error if room is not found', async () => {
-      const { ws, room } = await createRoomAndTestPlayer()
-      await deleteRoom(room.id)
+      const { ws } = await createRoomAndTestPlayer()
+      jest.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
 
       await ws
         .sendJson({ type: 'updateEstimate', payload: { estimate: 3 } })
@@ -432,7 +432,7 @@ describe('WebSocket Server', () => {
 
     it('return error if room is not found', async () => {
       const { ws, room } = await createRoomAndOwnerPlayerForTest()
-      await deleteRoom(room.id)
+      jest.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
 
       await ws
         .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })

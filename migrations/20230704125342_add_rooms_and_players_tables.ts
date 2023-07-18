@@ -12,7 +12,11 @@ export async function up(knex: Knex): Promise<void> {
     .createTable('players', (playersTable) => {
       playersTable.uuid('id').unique().notNullable().primary()
       playersTable.uuid('roomId').notNullable()
-      playersTable.foreign('roomId').references('rooms.id')
+      playersTable
+        .foreign('roomId')
+        .references('rooms.id')
+        .onDelete('CASCADE')
+        .onUpdate('CASCADE')
       playersTable.string('name').notNullable()
       playersTable.string('email').notNullable()
       playersTable.boolean('isOwner').notNullable()

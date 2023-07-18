@@ -4,7 +4,7 @@ import { createTestRoom, uuidRegex, mockTime } from './utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   describe('Create Room', () => {

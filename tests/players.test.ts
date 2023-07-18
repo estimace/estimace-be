@@ -10,7 +10,7 @@ import { createAuthToken } from 'app/utils'
 
 describe('Players', () => {
   beforeEach(() => {
-    jest.clearAllMocks()
+    jest.restoreAllMocks()
   })
 
   const testRoomId = '8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44'
