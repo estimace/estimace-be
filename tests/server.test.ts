@@ -15,21 +15,19 @@ describe('websocket server authentication', () => {
     await request(server).ws('/socket').expectConnectionError(401)
   })
 
-  it('destroys the socket if auth-scheme of authentication header is not "Bearer"', async () => {
-    await request(server)
-      .ws('/socket', {
-        headers: { Authorization: `Basic sample-credentials` },
-      })
-      .expectConnectionError(401)
+  it('destroys the socket if the request does not have playerId in query string', async () => {
+    await request(server).ws('/socket?authToken=xyz').expectConnectionError(401)
+  })
+
+  it('destroys the socket if the request does not have authToken in query string', async () => {
+    await request(server).ws('/socket?playerId=abc').expectConnectionError(401)
   })
 
   it('destroys the socket if the request auth info is invalid', async () => {
     const playerId = '420e0ae8-ffb5-41ca-bbf1-1f75d578d731'
     const authToken = 'invalid-auth-token'
     await request(server)
-      .ws('/socket', {
-        headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-      })
+      .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
       .expectConnectionError(401)
   })
 
@@ -38,9 +36,7 @@ describe('websocket server authentication', () => {
     const authToken = createAuthToken(playerId)
 
     await request(server)
-      .ws('/socket', {
-        headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-      })
+      .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
       .sendJson({ type: 'arbitrary-type', payload: { foo: 'bar' } })
       .close()
       .expectClosed()

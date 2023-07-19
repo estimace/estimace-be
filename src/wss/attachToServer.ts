@@ -11,20 +11,20 @@ export function attachWSToServer(server: Server) {
       return destroy(400, 'Bad request')
     }
 
-    const { pathname } = new URL(`http://localhost${request.url}`)
+    const { pathname, searchParams } = new URL(`http://localhost${request.url}`)
 
     if (pathname !== '/socket') {
       return destroy(404, 'Not Found')
     }
 
-    const authHeader = request.headers.authorization
+    const playerId = searchParams.get('playerId')
+    const authToken = searchParams.get('authToken')
 
-    if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    if (!playerId || !authToken) {
       return destroy(401, 'Unauthorized')
     }
 
-    const [playerId, secretToken] = authHeader.substring(7).split(':')
-    if (!verifyAuthToken(playerId, secretToken)) {
+    if (!verifyAuthToken(playerId, authToken)) {
       return destroy(401, 'Authentication failed')
     }
 

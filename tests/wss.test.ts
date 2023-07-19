@@ -30,9 +30,7 @@ describe('WebSocket Server', () => {
       const authToken = createAuthToken(player.id)
 
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${player.id}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${player.id}&authToken=${authToken}`)
         .sendBinary([1, 2, 3])
         .expectJson({
           type: 'error',
@@ -49,9 +47,7 @@ describe('WebSocket Server', () => {
       const authToken = createAuthToken(playerId)
 
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
         .sendJson({ type: 'arbitrary-type', payload: { foo: 'bar' } })
         .expectJson({
           type: 'error',
@@ -69,9 +65,7 @@ describe('WebSocket Server', () => {
       const authToken = createAuthToken(playerId)
 
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
         .sendText({ name: 'name' })
         .expectJson({
           type: 'error',
@@ -88,9 +82,7 @@ describe('WebSocket Server', () => {
       const authToken = createAuthToken(playerId)
 
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
         .sendJson({ name: 'name' })
         .expectJson({
           type: 'error',
@@ -197,9 +189,7 @@ describe('WebSocket Server', () => {
       const playerId = '2232945b-0cee-4d3d-ad03-333b08f9e19b'
       const authToken = createAuthToken(playerId)
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
         .sendJson({ type: 'updateEstimate', payload: { estimate: 3 } })
         .expectJson({
           type: 'error',
@@ -265,9 +255,9 @@ describe('WebSocket Server', () => {
     async function createRoomAndOwnerPlayerForTest() {
       const { body: room } = await createTestRoom()
       const authToken = createAuthToken(room.players[0].id)
-      const ws = request(server).ws('/socket', {
-        headers: { Authorization: `Bearer ${room.players[0].id}:${authToken}` },
-      })
+      const ws = request(server).ws(
+        `/socket?playerId=${room.players[0].id}&authToken=${authToken}`,
+      )
       return { ws, room }
     }
 
@@ -404,9 +394,7 @@ describe('WebSocket Server', () => {
       const playerId = '338198bf-133f-4194-a6e7-0c230d331543'
       const authToken = createAuthToken(playerId)
       await request(server)
-        .ws('/socket', {
-          headers: { Authorization: `Bearer ${playerId}:${authToken}` },
-        })
+        .ws(`/socket?playerId=${playerId}&authToken=${authToken}`)
         .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })
         .expectJson({
           type: 'error',
@@ -478,9 +466,9 @@ async function createRoomAndTestPlayer() {
   const { body: player } = await createTestPlayer(createPlayerParam)
 
   const authToken = createAuthToken(player.id)
-  const ws = request(server).ws('/socket', {
-    headers: { Authorization: `Bearer ${player.id}:${authToken}` },
-  })
+  const ws = request(server).ws(
+    `/socket?playerId=${player.id}&authToken=${authToken}`,
+  )
   return { ws, room, player }
 }
 
@@ -494,27 +482,21 @@ async function createItemsForBroadcastTest() {
     roomId: sutRoom.id,
   })
 
-  const sutRoomOwnerWs = request(server).ws('/socket', {
-    headers: {
-      Authorization: `Bearer ${sutRoom.players[0].id}:${createAuthToken(
-        sutRoom.players[0].id,
-      )}`,
-    },
-  })
-  const controlRoomOwnerWs = request(server).ws('/socket', {
-    headers: {
-      Authorization: `Bearer ${controlRoom.players[0].id}:${createAuthToken(
-        controlRoom.players[0].id,
-      )}`,
-    },
-  })
-  const sutRoomPlayerWs = request(server).ws('/socket', {
-    headers: {
-      Authorization: `Bearer ${sutRoomPlayer.id}:${createAuthToken(
-        sutRoomPlayer.id,
-      )}`,
-    },
-  })
+  const sutRoomOwnerWs = request(server).ws(
+    `/socket?playerId=${sutRoom.players[0].id}&authToken=${createAuthToken(
+      sutRoom.players[0].id,
+    )}`,
+  )
+  const controlRoomOwnerWs = request(server).ws(
+    `/socket?playerId=${controlRoom.players[0].id}&authToken=${createAuthToken(
+      controlRoom.players[0].id,
+    )}`,
+  )
+  const sutRoomPlayerWs = request(server).ws(
+    `/socket?playerId=${sutRoomPlayer.id}&authToken=${createAuthToken(
+      sutRoomPlayer.id,
+    )}`,
+  )
 
   return {
     sutRoomOwner: {
