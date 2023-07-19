@@ -7,6 +7,7 @@ import {
   CreateTestPlayerParam,
   restoreTimeMock,
 } from './utils'
+import { createAuthToken } from 'app/utils'
 
 describe('Players', () => {
   beforeEach(() => {
@@ -33,8 +34,14 @@ describe('Players', () => {
       }
       const createdPlayerResponse = await createTestPlayer(createPlayerParam)
       expect(createdPlayerResponse.statusCode).toBe(201)
+      const createdPlayer = createdPlayerResponse.body
 
-      const roomResponse = await request(app).get(`/rooms/${room.id}`)
+      const roomResponse = await request(app)
+        .get(`/rooms/${room.id}`)
+        .set(
+          'Authorization',
+          `Bearer ${createdPlayer.id}:${createdPlayer.authToken}`,
+        )
 
       expect(roomResponse).not.toBe(null)
       expect(roomResponse.body).toStrictEqual({

@@ -34,12 +34,18 @@ export const create: RequestHandler = async (req, res, next) => {
 }
 
 export const get: RequestHandler = async (req, res, next) => {
-  const validationResult = validate('/rooms/get', req.params, {
+  let validationResult = validate('/rooms/get', req.params, {
     id: [validators.isUUID],
   })
-
   if (!validationResult.isValid) {
     return res.status(404).json(validationResult.error)
+  }
+
+  validationResult = validate('/rooms/get', req.headers, {
+    authorization: [validators.isValidAuthHeader],
+  })
+  if (!validationResult.isValid) {
+    return res.status(401).json(validationResult.error)
   }
 
   const room = await getRoom(req.params.id)

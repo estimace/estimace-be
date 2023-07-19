@@ -5,6 +5,7 @@ import { isUUID } from './isUUID'
 import { isNumber, isNumberOrNull } from './isNumber'
 import { isRoomState } from './isRoomState'
 import { isStringWithMaxLength } from './isStringWithMaxLength'
+import { isValidAuthHeader } from './isValidAuthHeader'
 
 export { validate } from './validation'
 export const validators = {
@@ -16,4 +17,5 @@ export const validators = {
   isNumber,
   isNumberOrNull,
   isRoomState,
+  isValidAuthHeader,
 }

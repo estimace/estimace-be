@@ -206,15 +206,71 @@ describe('Rooms', () => {
   })
 
   describe('Get Room', () => {
-    it('gets room by a unique id', async () => {
-      const mockedTime = mockTime()
+    it('returns 404 error if roomId is not a valid UUID', async () => {
+      const { body, statusCode } = await request(app).get(`/rooms/xyzxyz45`)
+
+      expect(statusCode).toBe(404)
+      expect(body).toStrictEqual({
+        type: '/rooms/get/id/invalid',
+        title: '"id" field is not a valid UUID',
+      })
+    })
+
+    it('returns error if auth headers is not present in the request header', async () => {
       const createdRoomRes = await createTestRoom()
       const roomId = createdRoomRes.body.id
-
       const { body, statusCode } = await request(app).get(`/rooms/${roomId}`)
+      expect(body).toStrictEqual({
+        type: '/rooms/get/authorization/not-provided',
+        title: '"authorization" headers are not provided',
+      })
+      expect(statusCode).toBe(401)
+    })
+
+    it('returns error if auth-scheme of authentication header is not "Bearer"', async () => {
+      const createdRoomRes = await createTestRoom()
+      const roomId = createdRoomRes.body.id
+      const { body, statusCode } = await await request(app)
+        .get(`/rooms/${roomId}`)
+        .set('Authorization', 'Basic sample-credentials')
+      expect(body).toStrictEqual({
+        type: '/rooms/get/authorization/invalid-auth-scheme',
+        title:
+          'specified auth-scheme for "authorization" header is not supported',
+      })
+      expect(statusCode).toBe(401)
+    })
+
+    it('returns error if the request auth token is invalid for the player', async () => {
+      const createdRoomRes = await createTestRoom()
+      const room = createdRoomRes.body
+      const player = room.players[0]
+      const { body, statusCode } = await await request(app)
+        .get(`/rooms/${room.id}`)
+        .set('Authorization', `Bearer ${player.id}:invalid-auth-token`)
 
       expect(body).toStrictEqual({
-        id: roomId,
+        type: '/rooms/get/authorization/invalid-token',
+        title: 'authToken in "authorization" header is not valid',
+      })
+      expect(statusCode).toBe(401)
+    })
+
+    it('gets room by a unique id if authentication header is valid', async () => {
+      const mockedTime = mockTime()
+      const createdRoomRes = await createTestRoom()
+      const room = createdRoomRes.body
+      const player = room.players[0]
+
+      const { body, statusCode } = await request(app)
+        .get(`/rooms/${room.id}`)
+        .set(
+          'Authorization',
+          `Bearer ${player.id}:${createAuthToken(player.id)}`,
+        )
+
+      expect(body).toStrictEqual({
+        id: room.id,
         state: 'planning',
         technique: 'fibonacci',
         players: expect.arrayContaining([
@@ -237,20 +293,18 @@ describe('Rooms', () => {
       expect(body.players[0].roomId).toBe(body.id)
     })
 
-    it('returns error if roomId is not a valid UUID', async () => {
-      const { body, statusCode } = await request(app).get(`/rooms/xyzxyz45`)
+    it('returns 404 error if roomId is not in rooms database', async () => {
+      const { body: createdRoom } = await createTestRoom()
+      const player = createdRoom.players[0]
+      const nonExistingRoomId = '8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44'
 
-      expect(statusCode).toBe(404)
-      expect(body).toStrictEqual({
-        type: '/rooms/get/id/invalid',
-        title: '"id" field is not a valid UUID',
-      })
-    })
+      const { body, statusCode } = await request(app)
+        .get(`/rooms/${nonExistingRoomId}`)
+        .set(
+          'Authorization',
+          `Bearer ${player.id}:${createAuthToken(player.id)}`,
+        )
 
-    it('returns error if roomId is not in rooms database', async () => {
-      const { body, statusCode } = await request(app).get(
-        `/rooms/8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44`,
-      )
       expect(body).toStrictEqual({
         type: '/rooms/get/not-found',
         title: 'could not found the room with specified id',
