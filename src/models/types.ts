@@ -30,7 +30,7 @@ export type Player = {
   estimate: number | null
   createdAt: Date
   updatedAt: Date | null
-  secretKey?: string
+  authToken?: string
 }
 
 declare module 'knex/types/tables' {

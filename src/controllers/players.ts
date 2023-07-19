@@ -44,9 +44,9 @@ export const create: RequestHandler = async (req, res, next) => {
     },
   })
 
-  const secretKey = createAuthToken(player.id)
+  const authToken = createAuthToken(player.id)
 
-  res.status(201).json({ ...player, secretKey } as Player)
+  res.status(201).json({ ...player, authToken } as Player)
 }
 
 export const updateEstimate: WSMessageHandler = async (req, res) => {

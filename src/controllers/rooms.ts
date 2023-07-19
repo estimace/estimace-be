@@ -4,6 +4,7 @@ import { validate, validators } from 'app/validation'
 import { WSMessageHandler } from 'app/wss/types'
 import { getPlayer, getRoomPlayersIds } from 'app/models/players'
 import { RoomState } from 'app/models/types'
+import { createAuthToken } from 'app/utils'
 
 export const create: RequestHandler = async (req, res, next) => {
   const validationResult = validate('/rooms/create', req.body, {
@@ -27,6 +28,7 @@ export const create: RequestHandler = async (req, res, next) => {
       email: req.body.email,
     },
   })
+  room.players[0].authToken = createAuthToken(room.players[0].id)
 
   res.status(201).json(room)
 }

@@ -1,6 +1,7 @@
 import request from 'supertest'
 import { app } from 'app/webApp'
 import { createTestRoom, uuidRegex, mockTime, restoreTimeMock } from './utils'
+import { createAuthToken } from 'app/utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
@@ -22,6 +23,7 @@ describe('Rooms', () => {
               name: 'Darth Vader',
               estimate: null,
               isOwner: true,
+              authToken: createAuthToken(body.players[0].id),
               createdAt: mockedTime.toISOString(),
               updatedAt: null,
             }),
