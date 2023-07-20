@@ -15,6 +15,7 @@ import {
   getTechniqueById,
   isValidEstimation,
 } from 'app/utils'
+import { formatPlayerRowToPlayer } from 'app/models/utils'
 
 type CreateRoomParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -25,6 +26,10 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
   type InsertParam = Omit<Room, 'players' | 'technique' | 'state'> & {
     state: number
     technique: number
+  }
+
+  if (typeof param.player.email === 'undefined') {
+    throw new Error('email field can not be undefined')
   }
 
   const roomInsertParam: InsertParam = {
@@ -51,7 +56,7 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
 
   return {
     ...roomInsertParam,
-    players: [player],
+    players: [formatPlayerRowToPlayer(player) as Player],
     state: 'planning',
     technique: param.technique,
   }
@@ -101,7 +106,7 @@ export async function getRoom(
     ...roomRow,
     state: getRoomStateById(roomRow.state) as RoomState,
     technique: getTechniqueById(roomRow.technique) as Technique,
-    players: playersRows,
+    players: playersRows.map(formatPlayerRowToPlayer) as Player[],
   }
   return room
 }

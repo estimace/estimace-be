@@ -3,6 +3,7 @@ import { db } from 'app/db'
 
 import { Player, Room } from './types'
 import { PlayerRow } from 'knex/types/tables'
+import { formatPlayerRowToPlayer } from 'app/models/utils'
 
 type AddPlayerParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -17,7 +18,11 @@ export async function getRoomPlayersIds(
 }
 
 export async function addPlayerToRoom(param: AddPlayerParam): Promise<Player> {
-  const player: PlayerRow = {
+  if (typeof param.player.email === 'undefined') {
+    throw new Error('email field can not be undefined')
+  }
+
+  const playerRow: PlayerRow = {
     id: uuid(),
     roomId: param.roomId,
     email: param.player.email,
@@ -27,9 +32,8 @@ export async function addPlayerToRoom(param: AddPlayerParam): Promise<Player> {
     createdAt: new Date(),
     updatedAt: null,
   }
-  await db('players').insert(player)
-
-  return player
+  await db('players').insert(playerRow)
+  return formatPlayerRowToPlayer(playerRow) as Player
 }
 
 export async function updatePlayerEstimation(
@@ -50,10 +54,10 @@ export async function updatePlayerEstimation(
       'createdAt',
       'updatedAt',
     ])
-
-  return playersRow[0] ?? null
+  return formatPlayerRowToPlayer(playersRow[0])
 }
 
 export async function getPlayer(id: Player['id']): Promise<Player | null> {
-  return (await db('players').where({ id }).first()) ?? null
+  const playerRow = await db('players').where({ id }).first()
+  return formatPlayerRowToPlayer(playerRow)
 }

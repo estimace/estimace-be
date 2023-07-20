@@ -1,5 +1,9 @@
 import { RequestHandler } from 'express'
-import { createRoom, getRoom, updateState } from 'app/models/rooms'
+import {
+  createRoom,
+  getRoom,
+  updateState as updateRoomState,
+} from 'app/models/rooms'
 import { validate, validators } from 'app/validation'
 import { WSMessageHandler } from 'app/wss/types'
 import { getPlayer, getRoomPlayersIds } from 'app/models/players'
@@ -29,6 +33,7 @@ export const create: RequestHandler = async (req, res, next) => {
     },
   })
   room.players[0].authToken = createAuthToken(room.players[0].id)
+  delete room.players[0].email
 
   res.status(201).json(room)
 }
@@ -55,11 +60,12 @@ export const get: RequestHandler = async (req, res, next) => {
       title: 'could not found the room with specified id',
     })
   }
+  room.players.forEach((item) => delete item.email)
 
   res.status(200).json(room)
 }
 
-export const updateRoomState: WSMessageHandler = async (req, res) => {
+export const updateState: WSMessageHandler = async (req, res) => {
   const validationResult = validate('/rooms/update/state', req.payload, {
     state: [validators.isNotEmptyString, validators.isRoomState],
   })
@@ -97,7 +103,10 @@ export const updateRoomState: WSMessageHandler = async (req, res) => {
     )
   }
 
-  const updatedRoom = await updateState(room.id, req.payload.state as RoomState)
+  const updatedRoom = await updateRoomState(
+    room.id,
+    req.payload.state as RoomState,
+  )
   if (!updatedRoom) {
     return res.sendError(
       '/rooms/update/state/error-updating-db',

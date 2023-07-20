@@ -1,7 +1,14 @@
 import request from 'supertest'
 import { app } from 'app/webApp'
-import { createTestRoom, uuidRegex, mockTime, restoreTimeMock } from './utils'
+import {
+  createTestRoom,
+  uuidRegex,
+  mockTime,
+  restoreTimeMock,
+  CreateTestRoomParam,
+} from './utils'
 import { createAuthToken } from 'app/utils'
+import { getPictureURLByEmail } from 'app/models/utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
@@ -12,15 +19,20 @@ describe('Rooms', () => {
   describe('Create Room', () => {
     it('creates room by getting owner name, owner email, and estimation technique', async () => {
       const mockedTime = mockTime()
-      const { body, statusCode } = await createTestRoom()
+      const createParam: CreateTestRoomParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        technique: 'fibonacci',
+      }
+      const { body, statusCode } = await createTestRoom(createParam)
       expect(body).toStrictEqual(
         expect.objectContaining({
           state: 'planning',
           technique: 'fibonacci',
           players: expect.arrayContaining([
             expect.objectContaining({
-              email: 'darth@vader.com',
               name: 'Darth Vader',
+              pictureURL: getPictureURLByEmail(createParam.email),
               estimate: null,
               isOwner: true,
               authToken: createAuthToken(body.players[0].id),
@@ -32,10 +44,11 @@ describe('Rooms', () => {
           updatedAt: null,
         }),
       )
-      expect(statusCode).toBe(201)
       expect(body.id).toMatch(uuidRegex)
       expect(body.players[0].id).toMatch(uuidRegex)
       expect(body.players[0].roomId).toBe(body.id)
+      expect(body.players[0].email).not.toBeDefined()
+      expect(statusCode).toBe(201)
     })
 
     it('returns error if email address is invalid', async () => {
@@ -258,7 +271,12 @@ describe('Rooms', () => {
 
     it('gets room by a unique id if authentication header is valid', async () => {
       const mockedTime = mockTime()
-      const createdRoomRes = await createTestRoom()
+      const createParam: CreateTestRoomParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        technique: 'fibonacci',
+      }
+      const createdRoomRes = await createTestRoom(createParam)
       const room = createdRoomRes.body
       const player = room.players[0]
 
@@ -276,8 +294,8 @@ describe('Rooms', () => {
         players: expect.arrayContaining([
           expect.objectContaining({
             id: createdRoomRes.body.players[0].id,
-            email: 'darth@vader.com',
             name: 'Darth Vader',
+            pictureURL: getPictureURLByEmail(createParam.email),
             estimate: null,
             isOwner: true,
             createdAt: mockedTime.toISOString(),
@@ -287,10 +305,11 @@ describe('Rooms', () => {
         createdAt: mockedTime.toISOString(),
         updatedAt: null,
       })
-      expect(statusCode).toBe(200)
       expect(body.id).toMatch(uuidRegex)
       expect(body.players[0].id).toMatch(uuidRegex)
       expect(body.players[0].roomId).toBe(body.id)
+      expect(body.players[0].email).not.toBeDefined()
+      expect(statusCode).toBe(200)
     })
 
     it('returns 404 error if roomId is not in rooms database', async () => {

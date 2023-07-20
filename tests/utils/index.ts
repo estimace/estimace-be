@@ -5,12 +5,12 @@ import { app } from 'app/webApp'
 export const uuidRegex =
   /^[0-9A-F]{8}-[0-9A-F]{4}-[4][0-9A-F]{3}-[89AB][0-9A-F]{3}-[0-9A-F]{12}$/i
 
-type CreateTestRoomParam = {
+export type CreateTestRoomParam = {
   name: string
   email: string
   technique: 'fibonacci' | 'tShirtSizing'
 }
-const createRoomParam: CreateTestRoomParam = {
+export const createRoomParam: CreateTestRoomParam = {
   email: 'darth@vader.com',
   name: 'Darth Vader',
   technique: 'fibonacci',

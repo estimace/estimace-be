@@ -13,6 +13,7 @@ import {
   restoreTimeMock,
 } from './utils'
 import { assertNotReceivedAnyMessage } from './utils/ws'
+import { getPictureURLByEmail } from 'app/models/utils'
 
 describe('WebSocket Server', () => {
   afterEach(() => {
@@ -107,8 +108,8 @@ describe('WebSocket Server', () => {
           payload: {
             id: player.id,
             roomId: room.id,
-            email: 'darth@vader.com',
             name: 'Darth Vader',
+            pictureURL: getPictureURLByEmail('darth@vader.com'),
             estimate: 4,
             isOwner: false,
             createdAt: mockedTime.toISOString(),
@@ -125,8 +126,8 @@ describe('WebSocket Server', () => {
       const expectedPayload = {
         id: sutRoomPlayer.player.id,
         roomId: sutRoomPlayer.room.id,
-        email: 'darth@vader.com',
         name: 'Darth Vader',
+        pictureURL: getPictureURLByEmail('darth@vader.com'),
         estimate: 4,
         isOwner: false,
         createdAt: mockedTime.toISOString(),

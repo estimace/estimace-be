@@ -6,8 +6,9 @@ import {
   mockTime,
   CreateTestPlayerParam,
   restoreTimeMock,
+  CreateTestRoomParam,
 } from './utils'
-import { createAuthToken } from 'app/utils'
+import { getPictureURLByEmail } from 'app/models/utils'
 
 describe('Players', () => {
   beforeEach(() => {
@@ -24,12 +25,17 @@ describe('Players', () => {
   describe('Create new player for specified room', () => {
     it('creates player by getting player name, player email, and a roomId', async () => {
       const mockedTime = mockTime()
-      const { body: room, statusCode } = await createTestRoom()
+      const createRoomParam: CreateTestRoomParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        technique: 'fibonacci',
+      }
+      const { body: room, statusCode } = await createTestRoom(createRoomParam)
       expect(statusCode).toBe(201)
 
       const createPlayerParam: CreateTestPlayerParam = {
-        email: 'darth@vader.com',
-        name: 'Darth Vader',
+        name: 'Luke Skywalker',
+        email: 'luke@skywalker.com',
         roomId: room.id,
       }
       const createdPlayerResponse = await createTestPlayer(createPlayerParam)
@@ -51,8 +57,8 @@ describe('Players', () => {
         players: expect.arrayContaining([
           expect.objectContaining({
             id: room.players[0].id,
-            email: 'darth@vader.com',
-            name: 'Darth Vader',
+            name: createRoomParam.name,
+            pictureURL: getPictureURLByEmail(createRoomParam.email),
             estimate: null,
             isOwner: true,
             createdAt: mockedTime.toISOString(),
@@ -60,8 +66,8 @@ describe('Players', () => {
           }),
           expect.objectContaining({
             id: roomResponse.body.players[1].id,
-            email: 'darth@vader.com',
-            name: 'Darth Vader',
+            name: createPlayerParam.name,
+            pictureURL: getPictureURLByEmail(createPlayerParam.email),
             estimate: null,
             isOwner: false,
             createdAt: mockedTime.toISOString(),
@@ -71,6 +77,9 @@ describe('Players', () => {
         createdAt: mockedTime.toISOString(),
         updatedAt: null,
       })
+
+      expect(roomResponse.body.players[0].email).not.toBeDefined()
+      expect(roomResponse.body.players[1].email).not.toBeDefined()
     })
 
     it('returns error if email address is invalid', async () => {

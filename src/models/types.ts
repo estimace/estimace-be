@@ -25,12 +25,13 @@ export type Player = {
   id: string
   roomId: Room['id']
   name: string
-  email: string
+  email: string | undefined
+  pictureURL: string | null
   isOwner: boolean
   estimate: number | null
+  authToken?: string
   createdAt: Date
   updatedAt: Date | null
-  authToken?: string
 }
 
 declare module 'knex/types/tables' {

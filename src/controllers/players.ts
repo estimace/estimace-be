@@ -8,7 +8,6 @@ import {
 } from 'app/models/players'
 import { validate, validators } from 'app/validation'
 import { createAuthToken } from 'app/utils'
-import { Player } from 'app/models/types'
 import { getRoom, isEstimationValidForRoom } from 'app/models/rooms'
 import { WSMessageHandler } from 'app/wss/types'
 
@@ -46,7 +45,7 @@ export const create: RequestHandler = async (req, res, next) => {
 
   const authToken = createAuthToken(player.id)
 
-  res.status(201).json({ ...player, authToken } as Player)
+  res.status(201).json({ ...player, authToken, email: undefined })
 }
 
 export const updateEstimate: WSMessageHandler = async (req, res) => {
@@ -101,8 +100,10 @@ export const updateEstimate: WSMessageHandler = async (req, res) => {
     req.payload.estimate as number,
   )
 
-  res.sendMessage('estimateUpdated', player)
-
-  const roomPlayersIds = await getRoomPlayersIds(room.id)
-  res.broadcastMessage('estimateUpdated', player, roomPlayersIds)
+  if (player) {
+    delete player.email
+    res.sendMessage('estimateUpdated', player)
+    const roomPlayersIds = await getRoomPlayersIds(room.id)
+    res.broadcastMessage('estimateUpdated', player, roomPlayersIds)
+  }
 }
