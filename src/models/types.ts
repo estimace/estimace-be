@@ -25,7 +25,7 @@ export type Player = {
   id: string
   roomId: Room['id']
   name: string
-  email: string | undefined
+  email?: string
   pictureURL: string | null
   isOwner: boolean
   estimate: number | null
