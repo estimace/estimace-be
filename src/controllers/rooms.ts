@@ -46,13 +46,6 @@ export const get: RequestHandler = async (req, res, next) => {
     return res.status(404).json(validationResult.error)
   }
 
-  validationResult = validate('/rooms/get', req.headers, {
-    authorization: [validators.isValidAuthHeader],
-  })
-  if (!validationResult.isValid) {
-    return res.status(401).json(validationResult.error)
-  }
-
   const room = await getRoom(req.params.id)
   if (!room) {
     return res.status(404).json({
