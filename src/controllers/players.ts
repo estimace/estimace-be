@@ -56,6 +56,9 @@ export const create: RequestHandler = async (req, res, next) => {
       name: player.name,
       pictureURL: player.pictureURL,
       isOwner: player.isOwner,
+      createdAt: player.createdAt,
+      estimate: player.estimate,
+      updatedAt: player.updatedAt,
     },
     room.players.map((item) => item.id),
   )
