@@ -1,7 +1,9 @@
 import controllers from 'app/controllers'
 import { WSMessageHandler } from './types'
 
-export const routes: Record<string, WSMessageHandler> = {
-  updateEstimate: controllers.players.updateEstimate,
-  updateRoomState: controllers.rooms.updateState,
+export function getRoutes(): Record<string, WSMessageHandler> {
+  return {
+    updateEstimate: controllers.players.updateEstimate,
+    updateRoomState: controllers.rooms.updateState,
+  }
 }

@@ -2,7 +2,7 @@ import WebSocket from 'ws'
 
 import { parseJSON } from 'app/utils/json'
 import { Player } from 'app/models/types'
-import { routes } from './routes'
+import { getRoutes } from './routes'
 import { WSConnectionParam, isWSMessage } from './types'
 
 export const wss = new WebSocket.Server({ noServer: true })
@@ -12,7 +12,26 @@ interface TypedWebSocket extends WebSocket {
   connectionParam: WSConnectionParam
 }
 type WSClients = Record<Player['id'], TypedWebSocket>
-const clients: WSClients = {}
+export const clients: WSClients = {}
+
+export function broadcastMessage(
+  type: string,
+  payload: unknown,
+  playersIds: Array<Player['id']>,
+) {
+  for (const playerId of playersIds) {
+    const client = clients[playerId]
+    if (client && client.readyState === WebSocket.OPEN) {
+      client.send(
+        JSON.stringify({
+          type,
+          payload,
+        }),
+        { binary: false },
+      )
+    }
+  }
+}
 
 // detect and close broken connections
 const interval = setInterval(function ping() {
@@ -32,6 +51,8 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
     clients[param.playerId].terminate()
   }
 
+  const routes = getRoutes()
+
   const TypedWebSocket = ws as TypedWebSocket
   TypedWebSocket.isAlive = true
   TypedWebSocket.connectionParam = param
@@ -47,23 +68,16 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
     )
   }
 
-  function broadcastMessage(
+  function _broadcastMessage(
     type: string,
     payload: unknown,
     playersIds: Array<Player['id']>,
   ) {
-    for (const playerId of playersIds) {
-      const client = clients[playerId]
-      if (client && client !== ws && client.readyState === WebSocket.OPEN) {
-        client.send(
-          JSON.stringify({
-            type,
-            payload,
-          }),
-          { binary: false },
-        )
-      }
-    }
+    broadcastMessage(
+      type,
+      payload,
+      playersIds.filter((playerId) => clients[playerId] !== ws),
+    )
   }
 
   function sendError(errorType: string, title: string) {
@@ -106,7 +120,7 @@ wss.on('connection', (ws, param: WSConnectionParam) => {
       },
       {
         sendMessage,
-        broadcastMessage,
+        broadcastMessage: _broadcastMessage,
         sendError,
       },
     ).catch((err) => {

@@ -10,6 +10,7 @@ import { validate, validators } from 'app/validation'
 import { createAuthToken } from 'app/utils'
 import { getRoom, isEstimationValidForRoom } from 'app/models/rooms'
 import { WSMessageHandler } from 'app/wss/types'
+import { broadcastMessage } from 'app/wss'
 
 export const create: RequestHandler = async (req, res, next) => {
   const roomId = req.params.id
@@ -42,6 +43,22 @@ export const create: RequestHandler = async (req, res, next) => {
       email: req.body.email,
     },
   })
+  /***
+   * we have gotten the room before adding new player, so
+   * the room has all of its players except the newly joined player.
+   * we can broadcast new player's joining to all of these players
+   */
+  broadcastMessage(
+    'newPlayerJoined',
+    {
+      id: player.id,
+      roomId: player.roomId,
+      name: player.name,
+      pictureURL: player.pictureURL,
+      isOwner: player.isOwner,
+    },
+    room.players.map((item) => item.id),
+  )
 
   const authToken = createAuthToken(player.id)
 

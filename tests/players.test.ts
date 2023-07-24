@@ -1,4 +1,7 @@
 import request from 'supertest'
+import wsRequest from 'superwstest'
+import { server } from 'app/server'
+
 import { app } from 'app/webApp'
 import {
   createTestRoom,
@@ -9,6 +12,8 @@ import {
   CreateTestRoomParam,
 } from './utils'
 import { getPictureURLByEmail } from 'app/models/utils'
+import { createAuthToken } from 'app/utils'
+import { assertNotReceivedAnyMessage } from './utils/ws'
 
 describe('Players', () => {
   beforeEach(() => {
@@ -80,6 +85,48 @@ describe('Players', () => {
 
       expect(roomResponse.body.players[0].email).not.toBeDefined()
       expect(roomResponse.body.players[1].email).not.toBeDefined()
+    })
+
+    it('broadcasts new player creation to other players in room', async () => {
+      const mockedTime = mockTime()
+      const sutRoomParam: CreateTestRoomParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        technique: 'fibonacci',
+      }
+      const { body: sutRoom, statusCode } = await createTestRoom(sutRoomParam)
+      expect(statusCode).toBe(201)
+
+      const roomOwnerWs = wsRequest(server).ws(
+        `/socket?playerId=${sutRoom.players[0].id}&authToken=${createAuthToken(
+          sutRoom.players[0].id,
+        )}`,
+      )
+      const { body: player, status } = await createTestPlayer({
+        name: 'Luke Skywalker',
+        email: 'luke@skywalker.com',
+        roomId: sutRoom.id,
+      })
+      const playerWs = wsRequest(server).ws(
+        `/socket?playerId=${player.id}&authToken=${createAuthToken(player.id)}`,
+      )
+      expect(status).toBe(201)
+
+      assertNotReceivedAnyMessage(playerWs)
+
+      await roomOwnerWs.expectJson({
+        type: 'newPlayerJoined',
+        payload: {
+          id: player.id,
+          roomId: player.roomId,
+          name: player.name,
+          pictureURL: player.pictureURL,
+          isOwner: player.isOwner,
+        },
+      })
+
+      await roomOwnerWs.close()
+      await playerWs.close()
     })
 
     it('returns error if email address is invalid', async () => {
