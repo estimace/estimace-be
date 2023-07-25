@@ -1,5 +1,7 @@
 import request from 'superwstest'
+import supertestRequest from 'supertest'
 import { server } from 'app/server'
+import { app } from 'app/webApp'
 import { createAuthToken } from 'app/utils'
 
 import { updateState } from 'app/models/rooms'
@@ -279,6 +281,59 @@ describe('WebSocket Server', () => {
           },
         })
         .close()
+    })
+
+    it(`resets room's state to planning if the player is the owner of the room and as a result all of the estimations for this room rests to null`, async () => {
+      const mockedTime = mockTime()
+      const { ws, room } = await createRoomAndOwnerPlayerForTest()
+      await ws
+        .sendJson({ type: 'updateEstimate', payload: { estimate: 2 } })
+        .expectJson({
+          type: 'estimateUpdated',
+          payload: {
+            id: room.players[0].id,
+            roomId: room.id,
+            name: room.players[0].name,
+            pictureURL: room.players[0].pictureURL,
+            estimate: 2,
+            isOwner: true,
+            createdAt: mockedTime.toISOString(),
+            updatedAt: mockedTime.toISOString(),
+          },
+        })
+      await ws
+        .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })
+        .expectJson({
+          type: 'roomStateUpdated',
+          payload: {
+            id: room.id,
+            state: 'revealed',
+            technique: 'fibonacci',
+            createdAt: mockedTime.toISOString(),
+            updatedAt: mockedTime.toISOString(),
+          },
+        })
+      await ws
+        .sendJson({ type: 'updateRoomState', payload: { state: 'planning' } })
+        .expectJson({
+          type: 'roomStateUpdated',
+          payload: {
+            id: room.id,
+            state: 'planning',
+            technique: 'fibonacci',
+            createdAt: mockedTime.toISOString(),
+            updatedAt: mockedTime.toISOString(),
+          },
+        })
+        .close()
+
+      const { body, statusCode } = await supertestRequest(app).get(
+        `/rooms/${room.id}`,
+      )
+      expect(statusCode).toBe(200)
+      for (const player of body.players) {
+        expect(player.estimate).toBe(null)
+      }
     })
 
     it(`broadcast the updated of room state to other players in the room`, async () => {

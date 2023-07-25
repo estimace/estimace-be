@@ -79,6 +79,12 @@ export async function updateState(
       'updatedAt',
     ])
 
+  if (state === 'planning') {
+    await db('players')
+      .where({ roomId: roomsRows[0].id })
+      .update({ estimate: null, updatedAt: new Date() })
+  }
+
   return roomsRows[0]
     ? {
         ...roomsRows[0],
