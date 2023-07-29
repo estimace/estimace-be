@@ -1,5 +1,6 @@
 import { RequestHandler } from 'express'
 
+import config from 'app/config'
 import {
   addPlayerToRoom,
   getPlayer,
@@ -33,6 +34,14 @@ export const create: RequestHandler = async (req, res, next) => {
     return res.status(400).json({
       type: '/rooms/players/create/roomId/not-found',
       title: 'room is not found',
+    })
+  }
+
+  if (room.players.length >= config.playersPerRoomLimit) {
+    return res.status(400).json({
+      type: '/rooms/players/create/players-per-room-limit-reached',
+      title:
+        'The number of players in room has already reached the maximum limit of players per room',
     })
   }
 

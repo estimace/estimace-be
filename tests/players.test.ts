@@ -1,7 +1,8 @@
 import request from 'supertest'
 import wsRequest from 'superwstest'
-import { server } from 'app/server'
 
+import { server } from 'app/server'
+import config from 'app/config'
 import { app } from 'app/webApp'
 import {
   createTestRoom,
@@ -249,6 +250,36 @@ describe('Players', () => {
         type: '/rooms/players/create/roomId/not-found',
         title: 'room is not found',
       })
+    })
+
+    it('returns error if the number of players in room has reached the limit for number of players per room', async () => {
+      const createRoomParam: CreateTestRoomParam = {
+        email: 'darth@vader.com',
+        name: 'Darth Vader',
+        technique: 'fibonacci',
+      }
+      const { body: room, statusCode } = await createTestRoom(createRoomParam)
+      expect(statusCode).toBe(201)
+
+      const createPlayerParam: CreateTestPlayerParam = {
+        name: 'Luke Skywalker',
+        email: 'luke@skywalker.com',
+        roomId: room.id,
+      }
+      for (let i = 0; i < config.playersPerRoomLimit; i++) {
+        const { body, statusCode } = await createTestPlayer(createPlayerParam)
+        // room has already one player (the owner of the room)
+        if (i === config.playersPerRoomLimit - 1) {
+          expect(statusCode).toBe(400)
+          expect(body).toStrictEqual({
+            type: '/rooms/players/create/players-per-room-limit-reached',
+            title:
+              'The number of players in room has already reached the maximum limit of players per room',
+          })
+        } else {
+          expect(statusCode).toBe(201)
+        }
+      }
     })
   })
 })

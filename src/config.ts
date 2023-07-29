@@ -12,6 +12,7 @@ type Config = {
   db: Knex.Config
   authTokenSeed: string
   verbose: boolean
+  playersPerRoomLimit: number
 }
 
 const config: Config = {
@@ -33,6 +34,7 @@ const config: Config = {
   },
   authTokenSeed: process.env.AUTH_TOKEN_SEED as string,
   verbose: process.env.VERBOSE === 'true',
+  playersPerRoomLimit: parseNumber(process.env.PLAYERS_PER_ROOM_LIMIT, 30),
 }
 
 function parseNumber(value: string | undefined, fallback: number) {
