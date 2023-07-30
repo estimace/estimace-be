@@ -33,6 +33,15 @@ export function broadcastMessage(
   }
 }
 
+export async function destroyConnection(playersIds: Array<Player['id']>) {
+  for (const playerId of playersIds) {
+    const client = clients[playerId]
+    if (client && client.readyState === WebSocket.OPEN) {
+      client.close()
+    }
+  }
+}
+
 // detect and close broken connections
 const interval = setInterval(function ping() {
   wss.clients.forEach((ws: WebSocket) => {

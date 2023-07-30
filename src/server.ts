@@ -4,6 +4,7 @@ import { createServer } from 'http'
 import config from './config'
 import { app } from './webApp'
 import { attachWSToServer } from 'app/wss/attachToServer'
+import 'app/backgroundTasks'
 
 export const server = createServer(app)
 attachWSToServer(server)

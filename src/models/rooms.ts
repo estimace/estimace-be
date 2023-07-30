@@ -117,6 +117,38 @@ export async function getRoom(
   return room
 }
 
+type GetRoomLastUpdatedBeforeThreshold = (timestamp: number) => Promise<{
+  roomId: Room['id']
+  playersIds: PlayerRow['id'][]
+} | null>
+
+export const getRoomLastUpdatedBeforeThreshold: GetRoomLastUpdatedBeforeThreshold =
+  async (threshold) => {
+    const thresholdDate = new Date(threshold)
+    const roomRow = await db('rooms')
+      .select('id')
+      .where(function () {
+        this.where('createdAt', '<', thresholdDate).andWhere({
+          updatedAt: null,
+        })
+      })
+      .orWhere('updatedAt', '<', thresholdDate)
+      .first()
+
+    if (!roomRow) {
+      return null
+    }
+
+    const playersRows = await db('players')
+      .select('id')
+      .where({ roomId: roomRow.id })
+
+    return {
+      roomId: roomRow.id,
+      playersIds: playersRows.map((item) => item.id),
+    }
+  }
+
 export async function deleteRoom(id: string): Promise<void> {
   return await db('rooms').where({ id }).delete()
 }

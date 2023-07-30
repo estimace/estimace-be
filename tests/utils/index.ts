@@ -21,10 +21,9 @@ export type CreateTestPlayerParam = {
   roomId: string
 }
 
-export function mockTime(): Date {
-  const mockedDate = new Date(2020, 7, 10)
-  jest.useFakeTimers({ now: mockedDate })
-  return mockedDate
+export function mockTime(date: Date = new Date(2020, 7, 10)): Date {
+  jest.useFakeTimers({ now: date })
+  return date
 }
 
 export function restoreTimeMock() {

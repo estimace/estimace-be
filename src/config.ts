@@ -13,6 +13,8 @@ type Config = {
   authTokenSeed: string
   verbose: boolean
   playersPerRoomLimit: number
+  isGarbageCollectRoomsEnabled: boolean
+  roomTimeToLive: number
 }
 
 const config: Config = {
@@ -35,6 +37,9 @@ const config: Config = {
   authTokenSeed: process.env.AUTH_TOKEN_SEED as string,
   verbose: process.env.VERBOSE === 'true',
   playersPerRoomLimit: parseNumber(process.env.PLAYERS_PER_ROOM_LIMIT, 30),
+  isGarbageCollectRoomsEnabled:
+    process.env.BG_TASK_GARBAGE_COLLECT_ROOMS_ENABLED === 'true',
+  roomTimeToLive: parseNumber(process.env.TTL, 2592000000),
 }
 
 function parseNumber(value: string | undefined, fallback: number) {

@@ -1,3 +1,4 @@
+import { UUID } from 'crypto'
 import { Knex } from 'knex'
 
 export const TECHNIQUES = {
@@ -11,6 +12,13 @@ export const ROOM_STATES = {
   revealed: 2,
 }
 export type RoomState = keyof typeof ROOM_STATES
+
+export type BgTasks = {
+  name: string
+  isLocked: boolean
+  createdAt: Date
+  updatedAt: Date | null
+}
 
 export type Room = {
   id: string
@@ -54,9 +62,17 @@ declare module 'knex/types/tables' {
     updatedAt: Date | null
   }
 
+  interface BgTasksRow {
+    name: string
+    isLocked: boolean
+    createdAt: Date
+    updatedAt: Date | null
+  }
+
   interface Tables {
     rooms: RoomRow
     players: PlayerRow
+    bgTasks: BgTasksRow
     rooms_composite: Knex.CompositeTableType<
       RoomRow,
       Pick<RoomRow, 'id' | 'technique'>,
@@ -66,6 +82,11 @@ declare module 'knex/types/tables' {
       PlayerRow,
       Pick<PlayerRow, 'name' | 'email'>,
       Partial<Omit<PlayerRow, 'id'>>
+    >
+    bgTasks_composite: Knex.CompositeTableType<
+      RoomRow,
+      Pick<BgTasksRow, 'name' | 'isLocked'>,
+      Partial<Omit<BgTasksRow, 'id' | 'createdAt'>>
     >
   }
 }
