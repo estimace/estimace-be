@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 
 dotenv.config({ path: process.env.NODE_ENV === 'test' ? '.env.test' : '.env' })
 
-const dbType = process.env.DB_TYPE ?? 'sqlite3'
+const dbType = process.env.DB_TYPE ?? 'pg'
 const connectionString = process.env.DB_CONNECTION_STRING as string
 
 type Config = {
@@ -39,7 +39,7 @@ const config: Config = {
   playersPerRoomLimit: parseNumber(process.env.PLAYERS_PER_ROOM_LIMIT, 30),
   isGarbageCollectRoomsEnabled:
     process.env.BG_TASK_GARBAGE_COLLECT_ROOMS_ENABLED === 'true',
-  roomTimeToLive: parseNumber(process.env.TTL, 2592000000),
+  roomTimeToLive: parseNumber(process.env.ROOM_TTL, 2592000000),
 }
 
 function parseNumber(value: string | undefined, fallback: number) {

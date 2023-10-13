@@ -1,0 +1,24 @@
+FROM node:18-alpine AS base
+
+# Install dependencies only when needed
+FROM base AS deps
+WORKDIR /opt/app
+
+COPY package.json ./
+COPY yarn.lock ./
+RUN yarn --frozen-lockfile
+
+# Copy all the files and run the db migration
+FROM base
+WORKDIR /opt/app
+
+COPY --from=deps /opt/app/node_modules ./node_modules
+COPY . .
+
+ARG DB_TYPE=pg
+ARG DB_CONNECTION_STRING
+
+ENV DB_TYPE=$DB_TYPE
+ENV DB_CONNECTION_STRING=$DB_CONNECTION_STRING
+
+CMD ["yarn", "run", "db:migrate:latest"]

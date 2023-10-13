@@ -1,8 +1,10 @@
 import { getRoomLastUpdatedBeforeThreshold, deleteRoom } from 'app/models/rooms'
 import { destroyConnection } from 'app/wss'
 
-export async function garbageCollectRooms(TTLms: number): Promise<void> {
-  const threshold = Date.now() - TTLms
+export async function garbageCollectRooms(
+  roomTTLInMilliseconds: number,
+): Promise<void> {
+  const threshold = Date.now() - roomTTLInMilliseconds
 
   try {
     let item: Awaited<ReturnType<typeof getRoomLastUpdatedBeforeThreshold>>
