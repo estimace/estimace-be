@@ -3,7 +3,6 @@
     "compilerOptions": {
     "paths": {
       "app/*": ["./src/*"],
-      "@/*": ["./*"],
     },
      "outDir": "./dist",                          
   }

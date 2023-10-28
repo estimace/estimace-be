@@ -5,7 +5,6 @@ const jestConfig: JestConfigWithTsJest = {
   testEnvironment: 'node',
   moduleNameMapper: {
     '^app/(.*)$': '<rootDir>/src/$1',
-    '@/(.*)': '<rootDir>/$1',
   },
   globalSetup: './tests/setup.ts',
 }
