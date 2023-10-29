@@ -1,0 +1,26 @@
+stages:
+  - test
+
+integration tests:
+  stage: test
+  image: node:18-alpine
+  variables:
+    NODE_ENV: "test"
+  script:
+    - apk update
+    - apk add postgresql
+    - (addgroup -S postgres && adduser -S postgres -G postgres || true)
+    - mkdir -p /var/lib/postgresql/data
+    - mkdir -p /run/postgresql/
+    - chown -R postgres:postgres /run/postgresql/
+    - chmod -R 777 /var/lib/postgresql/data
+    - chown -R postgres:postgres /var/lib/postgresql/data
+    - su - postgres -c "initdb /var/lib/postgresql/data"
+    - echo "host all  all    0.0.0.0/0  md5" >> /var/lib/postgresql/data/pg_hba.conf
+    - su - postgres -c "pg_ctl start -D /var/lib/postgresql/data -l /var/lib/postgresql/log.log"
+    - su - postgres -c "psql --command 'CREATE DATABASE estimace_test;'"
+    - su - postgres -c "psql --command \"CREATE USER estimace_user WITH ENCRYPTED PASSWORD 'secret'\""
+    - su - postgres -c "psql --command 'GRANT ALL PRIVILEGES ON DATABASE estimace_test to estimace_user;'"
+    - su - postgres -c "psql --command 'ALTER DATABASE estimace_test OWNER TO estimace_user;'"
+    - yarn --frozen-lockfile
+    - yarn run test

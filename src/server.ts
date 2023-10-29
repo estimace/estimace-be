@@ -9,7 +9,9 @@ import 'app/backgroundTasks'
 export const server = createServer(app)
 attachWSToServer(server)
 
-server.listen(config.port, () => {
+server.listen(config.port, '0.0.0.0', () => {
   const address = server.address() as AddressInfo
-  console.log(`[server]: Server is running at http://localhost:${address.port}`)
+  console.log(
+    `[server]: Server is running at http://${address.address}:${address.port}`,
+  )
 })

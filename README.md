@@ -26,7 +26,16 @@ yarn dev
 
 ## Run tests
 
-Create a test db in your local Postgres server called `estimace-test` and then run the comment below:
+Create a test db in your local Postgres server called `estimace_test` and add a test user to it:
+```sh
+$ psql
+CREATE DATABASE estimace_test;
+CREATE USER estimace_user WITH ENCRYPTED PASSWORD 'secret';
+GRANT ALL PRIVILEGES ON DATABASE estimace_test to estimace_user;
+ALTER DATABASE estimace_test OWNER TO estimace_user;
+```
+
+Then run the tests by the command below:
 
 ```sh
 yarn test

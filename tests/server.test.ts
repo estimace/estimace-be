@@ -3,7 +3,11 @@ import { server } from 'app/server'
 import { createAuthToken } from 'app/utils'
 
 describe('websocket server authentication', () => {
-  afterAll((done) => {
+  beforeEach((done) => {
+    server.listen(0, '0.0.0.0', done)
+  })
+
+  afterEach((done) => {
     server.close(done)
   })
 
