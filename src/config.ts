@@ -50,4 +50,6 @@ function parseNumber(value: string | undefined, fallback: number) {
   return parsedValue
 }
 
+console.log({ config })
+
 export default config
