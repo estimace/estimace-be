@@ -3,7 +3,7 @@ stages:
 
 integration tests:
   stage: test
-  image: node:18-alpine
+  image: node:20.11-alpine
   variables:
     NODE_ENV: "test"
   script:
