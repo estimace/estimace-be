@@ -4,3 +4,4 @@ node_modules
 db.sqlite
 db-test.sqlite
 coverage
+yarn-error.log
