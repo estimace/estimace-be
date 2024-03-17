@@ -39,13 +39,6 @@ export const create: RequestHandler = async (req, res, next) => {
 }
 
 export const get: RequestHandler = async (req, res, next) => {
-  let validationResult = validate('/rooms/get', req.params, {
-    id: [validators.isUUID],
-  })
-  if (!validationResult.isValid) {
-    return res.status(404).json(validationResult.error)
-  }
-
   const room = await getRoom(req.params.id)
   if (!room) {
     return res.status(404).json({

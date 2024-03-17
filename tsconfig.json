@@ -1,9 +1,8 @@
 {
-    "extends": "@tsconfig/node20/tsconfig.json",
-    "compilerOptions": {
+  "compilerOptions": {
     "paths": {
-      "app/*": ["./src/*"],
+      "app/*": ["./src/*"]
     },
-     "outDir": "./dist",                          
+    "esModuleInterop": true
   }
 }

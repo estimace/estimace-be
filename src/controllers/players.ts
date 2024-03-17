@@ -21,7 +21,7 @@ export const create: RequestHandler = async (req, res, next) => {
     {
       name: [validators.isNotEmptyString],
       email: [validators.isNotEmptyString, validators.isEmail],
-      roomId: [validators.isNotEmptyString, validators.isUUID],
+      roomId: [validators.isNotEmptyString],
     },
   )
 

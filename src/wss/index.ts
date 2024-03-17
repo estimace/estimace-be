@@ -1,11 +1,11 @@
-import WebSocket from 'ws'
+import { WebSocketServer, WebSocket } from 'ws'
 
 import { parseJSON } from 'app/utils/json'
 import { Player } from 'app/models/types'
 import { getRoutes } from './routes'
 import { WSConnectionParam, isWSMessage } from './types'
 
-export const wss = new WebSocket.Server({ noServer: true })
+export const wss = new WebSocketServer({ noServer: true })
 
 interface TypedWebSocket extends WebSocket {
   isAlive: boolean
