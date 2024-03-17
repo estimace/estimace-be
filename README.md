@@ -66,7 +66,7 @@ yarn start
 ### Development and Testing
 **TypeScript:** A superset of JavaScript that adds static types to the language, used for developing the backend application.
 
-**Jest:** A JavaScript testing framework, used for writing and running unit tests.
+**Vitest:** A testing framework that supports TypeScript out of the box.
 
 **Supertest:** A library for testing HTTP assertions, used for testing HTTP requests and responses.
 
