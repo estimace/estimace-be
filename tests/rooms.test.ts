@@ -1,8 +1,10 @@
+import { describe, it, vi, beforeEach, expect } from 'vitest'
 import request from 'supertest'
 import { app } from 'app/webApp'
 import {
   createTestRoom,
   uuidRegex,
+  URLSafeIdRegex,
   mockTime,
   restoreTimeMock,
   CreateTestRoomParam,
@@ -12,7 +14,7 @@ import { getPictureURLByEmail } from 'app/models/utils'
 
 describe('Rooms', () => {
   beforeEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
     restoreTimeMock()
   })
 
@@ -44,7 +46,7 @@ describe('Rooms', () => {
           updatedAt: null,
         }),
       )
-      expect(body.id).toMatch(uuidRegex)
+      expect(body.id).toMatch(URLSafeIdRegex)
       expect(body.players[0].id).toMatch(uuidRegex)
       expect(body.players[0].roomId).toBe(body.id)
       expect(body.players[0].email).not.toBeDefined()
@@ -219,16 +221,6 @@ describe('Rooms', () => {
   })
 
   describe('Get Room', () => {
-    it('returns 404 error if roomId is not a valid UUID', async () => {
-      const { body, statusCode } = await request(app).get(`/rooms/xyzxyz45`)
-
-      expect(statusCode).toBe(404)
-      expect(body).toStrictEqual({
-        type: '/rooms/get/id/invalid',
-        title: '"id" field is not a valid UUID',
-      })
-    })
-
     it('returns 404 error if roomId is not in rooms database', async () => {
       const nonExistingRoomId = '8b9be3d4-c522-4f1b-8bc2-b99f1fac4d44'
 
@@ -273,7 +265,7 @@ describe('Rooms', () => {
         createdAt: mockedTime.toISOString(),
         updatedAt: null,
       })
-      expect(body.id).toMatch(uuidRegex)
+      expect(body.id).toMatch(URLSafeIdRegex)
       expect(body.players[0].id).toMatch(uuidRegex)
       expect(body.players[0].roomId).toBe(body.id)
       expect(body.players[0].email).not.toBeDefined()

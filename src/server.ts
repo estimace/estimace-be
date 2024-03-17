@@ -11,7 +11,8 @@ attachWSToServer(server)
 
 server.listen(config.port, '0.0.0.0', () => {
   const address = server.address() as AddressInfo
-  console.log(
-    `[server]: Server is running at http://${address.address}:${address.port}`,
-  )
+  if (config.env !== 'test')
+    console.log(
+      `[server]: Server is running at http://${address.address}:${address.port}`,
+    )
 })

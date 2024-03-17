@@ -1,16 +1,9 @@
+import { describe, it } from 'vitest'
 import request from 'superwstest'
 import { server } from 'app/server'
 import { createAuthToken } from 'app/utils'
 
 describe('websocket server authentication', () => {
-  beforeEach((done) => {
-    server.listen(0, '0.0.0.0', done)
-  })
-
-  afterEach((done) => {
-    server.close(done)
-  })
-
   it('destroys the socket if the request path is not "/socket"', async () => {
     await request(server).ws('/foo/bar').expectConnectionError(404)
   })

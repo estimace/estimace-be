@@ -1,4 +1,5 @@
 import md5 from 'md5'
+import { customAlphabet } from 'nanoid'
 import { Player } from 'app/models/types'
 import { PlayerRow } from 'knex/types/tables'
 import validator from 'validator'
@@ -27,4 +28,12 @@ export function getPictureURLByEmail(email: string) {
 
   const hash = md5(normalizedEmail)
   return `https://www.gravatar.com/avatar/${hash}?d=retro`
+}
+
+const nanoId = customAlphabet(
+  '0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz',
+  16,
+)
+export function generateURLFriendlyID() {
+  return nanoId()
 }

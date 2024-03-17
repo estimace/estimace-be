@@ -1,3 +1,4 @@
+import { describe, it, vi, beforeEach, expect } from 'vitest'
 import request from 'supertest'
 import wsRequest from 'superwstest'
 
@@ -18,7 +19,7 @@ import { assertNotReceivedAnyMessage } from './utils/ws'
 
 describe('Players', () => {
   beforeEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
     restoreTimeMock()
   })
 
@@ -227,17 +228,7 @@ describe('Players', () => {
         title: '"roomId" field is empty',
       })
     })
-    it('returns error if roomId is invalid', async () => {
-      const { body, statusCode } = await request(app)
-        .post(`/rooms/8b9be3d4/players`)
-        .send({ ...testPlayer })
 
-      expect(statusCode).toBe(400)
-      expect(body).toStrictEqual({
-        type: '/rooms/players/create/roomId/invalid',
-        title: '"roomId" field is not a valid UUID',
-      })
-    })
     it('returns error if roomId is not in db', async () => {
       const { body, statusCode } = await request(app)
         .post(`/rooms/d0870350-6ae7-4b58-bd09-aadd70d686b7/players`)

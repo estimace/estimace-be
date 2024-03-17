@@ -15,7 +15,10 @@ import {
   getTechniqueById,
   isValidEstimation,
 } from 'app/utils'
-import { formatPlayerRowToPlayer } from 'app/models/utils'
+import {
+  formatPlayerRowToPlayer,
+  generateURLFriendlyID,
+} from 'app/models/utils'
 
 type CreateRoomParam = {
   player: Pick<Player, 'name' | 'email'>
@@ -33,7 +36,7 @@ export async function createRoom(param: CreateRoomParam): Promise<Room> {
   }
 
   const roomInsertParam: InsertParam = {
-    id: uuid(),
+    id: generateURLFriendlyID(),
     state: ROOM_STATES.planning,
     technique: TECHNIQUES[param.technique],
     createdAt: new Date(),

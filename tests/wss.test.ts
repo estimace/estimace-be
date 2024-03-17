@@ -1,3 +1,4 @@
+import { describe, it, vi, afterAll, afterEach, expect } from 'vitest'
 import request from 'superwstest'
 import supertestRequest from 'supertest'
 import { server } from 'app/server'
@@ -19,12 +20,12 @@ import { getPictureURLByEmail } from 'app/models/utils'
 
 describe('WebSocket Server', () => {
   afterEach(() => {
-    jest.restoreAllMocks()
+    vi.restoreAllMocks()
     restoreTimeMock()
   })
 
   afterAll((done) => {
-    server.close(done)
+    server.close()
   })
 
   describe('general message validation', () => {
@@ -206,7 +207,7 @@ describe('WebSocket Server', () => {
 
     it('return error if room is not found', async () => {
       const { ws } = await createRoomAndTestPlayer()
-      jest.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
+      vi.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
 
       await ws
         .sendJson({ type: 'updateEstimate', payload: { estimate: 3 } })
@@ -479,7 +480,7 @@ describe('WebSocket Server', () => {
 
     it('return error if room is not found', async () => {
       const { ws, room } = await createRoomAndOwnerPlayerForTest()
-      jest.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
+      vi.spyOn(roomsModel, 'getRoom').mockResolvedValue(null)
 
       await ws
         .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })
@@ -495,7 +496,7 @@ describe('WebSocket Server', () => {
     it(`returns error if updating room state in database was not successful`, async () => {
       const mockedTime = mockTime()
       const { ws, room } = await createRoomAndOwnerPlayerForTest()
-      jest.spyOn(roomsModel, 'updateState').mockResolvedValueOnce(null)
+      vi.spyOn(roomsModel, 'updateState').mockResolvedValueOnce(null)
 
       await ws
         .sendJson({ type: 'updateRoomState', payload: { state: 'revealed' } })
