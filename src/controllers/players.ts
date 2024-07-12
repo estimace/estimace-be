@@ -25,7 +25,7 @@ export const create: RequestHandler = async (req, res, next) => {
     },
   )
 
-  if (!validationResult.isValid) {
+  if (validationResult.isValid === false) {
     return res.status(400).json(validationResult.error)
   }
 
@@ -87,7 +87,7 @@ export const updateEstimate: WSMessageHandler = async (req, res) => {
     },
   )
 
-  if (!validationResult.isValid) {
+  if (validationResult.isValid === false) {
     const { type, title } = validationResult.error
     return res.sendError(type, title)
   }

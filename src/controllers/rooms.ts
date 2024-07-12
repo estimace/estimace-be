@@ -21,7 +21,7 @@ export const create: RequestHandler = async (req, res, next) => {
     technique: [validators.isNotEmptyString, validators.isTechnique],
   })
 
-  if (!validationResult.isValid) {
+  if (validationResult.isValid === false) {
     return res.status(400).json(validationResult.error)
   }
 
@@ -56,7 +56,7 @@ export const updateState: WSMessageHandler = async (req, res) => {
     state: [validators.isNotEmptyString, validators.isRoomState],
   })
 
-  if (!validationResult.isValid) {
+  if (validationResult.isValid === false) {
     const { type, title } = validationResult.error
     return res.sendError(type, title)
   }
