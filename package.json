@@ -6,7 +6,7 @@
   "type": "module",
   "scripts": {
     "start": "tsx src/server.ts",
-    "dev": "onchange -i -k './src/**/*.ts' -- yarn start",
+    "dev": "tsx watch src/server.ts",
     "db:migrate:make": "node --import tsx/esm ./node_modules/.bin/knex migrate:make",
     "db:migrate:latest": "node --import tsx/esm ./node_modules/.bin/knex migrate:latest",
     "db:migrate:rollback": "node --import tsx/esm ./node_modules/.bin/knex migrate:rollback",
@@ -22,11 +22,10 @@
     "morgan": "^1.10.0",
     "nanoid": "^5.0.6",
     "pg": "^8.11.1",
-    "tsx": "^4.7.1",
+    "tsx": "^4.19.1",
     "uuid": "^9.0.0",
     "validator": "^13.9.0",
-    "vite": "^5.2.10",
-    "ws": "^8.17.1"
+    "ws": "^8.18.0"
   },
   "devDependencies": {
     "@types/express": "^4.17.17",
@@ -37,12 +36,11 @@
     "@types/uuid": "^9.0.2",
     "@types/validator": "^13.7.17",
     "@types/ws": "^8.5.10",
-    "@vitest/coverage-v8": "^1.4.0",
-    "onchange": "^7.1.0",
+    "@vitest/coverage-v8": "^2.1.1",
     "supertest": "^6.3.4",
-    "superwstest": "^2.0.3",
+    "superwstest": "^2.0.4",
     "typescript": "^5.4.2",
-    "vite-tsconfig-paths": "^4.3.2",
-    "vitest": "^1.5.0"
+    "vite-tsconfig-paths": "^5.0.1",
+    "vitest": "^2.1.1"
   }
 }
