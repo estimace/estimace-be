@@ -3,9 +3,9 @@ stages:
 
 integration tests:
   stage: test
-  image: node:20.11-alpine
+  image: node:20-alpine
   variables:
-    NODE_ENV: "test"
+    NODE_ENV: 'test'
   script:
     - apk update
     - apk add postgresql
