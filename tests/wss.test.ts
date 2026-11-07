@@ -24,7 +24,7 @@ describe('WebSocket Server', () => {
     restoreTimeMock()
   })
 
-  afterAll((done) => {
+  afterAll(() => {
     server.close()
   })
 
