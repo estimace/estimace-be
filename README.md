@@ -3,7 +3,7 @@ For estimating stories and tasks in your Agile team, give *Estimace* a try! It's
 
 **Estimace backend** is a TypeScript application that includes a REST API Server and a WebSocket Server, both of which rely on Postgres for data storage. The Rest API is implemented using `express` and the WebSocket server is using `ws` library.
 
-The front-end counterpart of the application can be found [here](https://gitlab.com/estimace/estimace-fe). Follow the README file in that repo to set it up.
+The front-end counterpart of the application can be found [here](https://github.com/estimace/estimace-fe). Follow the README file in that repo to set it up.
 
 ## Installation
 
@@ -72,7 +72,7 @@ yarn start
 
 **superwstest:** A utility for testing WebSocket connections in Jest.
 
-**Gitlab CI**: Used gitlab continuous integration service to make the app's pipeline to ensure the app is in ready for production after each development change.
+**GitHub Actions**: Used GitHub's continuous integration service to make the app's pipeline to ensure the app is in ready for production after each development change.
 
 **Docker**: The app is containerized using Docker, providing consistency in deployment across various environments.
 
@@ -81,7 +81,7 @@ yarn start
 The project follows the Model-Controller-View (MCV) design pattern.
 - Models: Database models and business logic are organized here. Utilizes Knex for database operations.
 - Controllers: Handle the incoming requests, interact with models, and send responses.
-- Views: Not applicable for our backend project since it does not serve front-end content. The Front-end is a separate project available at [Estimace front-end](https://gitlab.com/estimace/estimace-fe).
+- Views: Not applicable for our backend project since it does not serve front-end content. The Front-end is a separate project available at [Estimace front-end](https://github.com/estimace/estimace-fe).
 
 ## Database
 Database operations in this project are handled through abstraction using `Knex`, a SQL query builder for Node.js. The `migrations` folder encapsulates migration files, each containing the logic necessary for creating tables within the database. Models, representing the structure and interactions with the database, are organized under the `models` directory located within the *src* directory. 
